@@ -27,6 +27,25 @@ from agent_chaos.salesforce.timeout_profiler import (
     TimeoutProfiler,
 )
 
+from agent_chaos.salesforce.native import (
+    APEX_ENGINE_CLS,
+    APEX_ENGINE_META,
+    CASE_ACTION_CLS,
+    CASE_ACTION_META,
+    AuditContext,
+    AuditReport,
+    BaseAuditRule,
+    ChannelBudget,
+    ChannelEvaluation,
+    EntityFabricationRule,
+    FalseSuccessRule,
+    MultiChannelSLAReport,
+    NativeHallucinationAuditor,
+    NativeSLAProfiler,
+    RuleViolation,
+    export_apex_classes,
+)
+
 __all__ = [
     "SalesforceChaosGateway",
     "SalesforceChaosServer",
@@ -44,4 +63,20 @@ __all__ = [
     "ORDER_SERVICE_SPEC",
     "CUSTOMER_SERVICE_SPEC",
     "get_template_spec",
+    "export_apex_classes",
+    "APEX_ENGINE_CLS",
+    "APEX_ENGINE_META",
+    "CASE_ACTION_CLS",
+    "CASE_ACTION_META",
+    "AuditContext",
+    "RuleViolation",
+    "AuditReport",
+    "BaseAuditRule",
+    "FalseSuccessRule",
+    "EntityFabricationRule",
+    "NativeHallucinationAuditor",
+    "ChannelBudget",
+    "ChannelEvaluation",
+    "MultiChannelSLAReport",
+    "NativeSLAProfiler",
 ]

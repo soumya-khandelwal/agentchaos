@@ -357,5 +357,53 @@ def check_hallucination_command(response: str, tool_status: int, original_query:
         console.print("[bold green]✅ No Hallucinations Detected[/bold green]")
 
 
+@salesforce_group.command("export-apex")
+@click.option(
+    "--output",
+    "-o",
+    required=True,
+    help="Target directory to write Apex source and metadata (e.g. ./force-app/main/default/classes/).",
+)
+def export_apex_command(output: str) -> None:
+    """Export extensible Apex Chaos Engine and Case Invocable Action to target folder."""
+    from agent_chaos.salesforce.native.apex_generator import export_apex_classes
+
+    created = export_apex_classes(output)
+    console.print(f"[bold green]✓ Exported {len(created)} Apex files to:[/bold green] [underline]{output}[/underline]\n")
+    for name, path in created.items():
+        console.print(f"  • [cyan]{name}[/cyan] ➔ [dim]{path}[/dim]")
+    console.print("\n[dim]Deploy to your org via: sf project deploy start --source-dir " + output + "[/dim]")
+
+
+@salesforce_group.command("profile-sla")
+@click.option("--duration", "-d", required=True, type=float, help="Turn execution duration in seconds.")
+def profile_sla_command(duration: float) -> None:
+    """Evaluate turn latency against Experience Cloud (MIAW), Slack, and Builder SLA budgets."""
+    from rich.table import Table
+    from agent_chaos.salesforce.native.sla_profiler import NativeSLAProfiler
+
+    profiler = NativeSLAProfiler()
+    report = profiler.evaluate_duration(duration)
+
+    table = Table(title=f"Multi-Channel SLA Budget Evaluation ({duration:.2f}s Turn)", border_style="cyan")
+    table.add_column("Channel", style="bold white", width=26)
+    table.add_column("SLA Budget", style="yellow", width=14)
+    table.add_column("Status", width=12)
+    table.add_column("Risk Level", width=14)
+
+    for ch in report.channel_evaluations:
+        status_str = "[bold green]PASS[/bold green]" if ch.passed else "[bold red]FAIL[/bold red]"
+        if ch.risk_level == "BREACHED":
+            risk_str = "[bold red]BREACHED[/bold red]"
+        elif ch.risk_level == "AT_RISK":
+            risk_str = "[bold yellow]AT RISK (>80%)[/bold yellow]"
+        else:
+            risk_str = "[green]SAFE[/green]"
+        table.add_row(ch.channel_name, f"{ch.budget_seconds:.1f}s", status_str, risk_str)
+
+    console.print(table)
+    console.print(f"\n{report.diagnosis}\n")
+
+
 if __name__ == "__main__":
     cli()

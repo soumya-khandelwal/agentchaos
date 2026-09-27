@@ -396,12 +396,12 @@
 <h2>🧭 Executive Summary &amp; Design Decisions</h2>
 <p>Through the <code>/grill-me</code> architectural review, we established the following decisions for the native Salesforce POC:</p>
 <ol>
-<li><strong>Failure Injection Boundary:</strong> Native <strong>Apex Invocable Chaos Framework</strong> (<code>CaseSupportChaosAction.cls</code>). Injects DML validation exceptions, Apex CPU governor timeouts (up to 10s CPU limit), SOQL recordset corruption, and unhandled errors directly into Agentforce actions.</li>
-<li><strong>Test Driving Strategy:</strong> <strong>Einstein Agent API Test Runner</strong> (Python / CLI driver using Salesforce OAuth 2.0 to drive headless multi-turn conversations against the agent).</li>
-<li><strong>Target Business Domain:</strong> <strong>Case Management &amp; Support Escalation</strong> (Creating and routing customer support cases).</li>
-<li><strong>Chaos Control Mechanism:</strong> <strong>Hybrid Dynamic Keyword + Custom Metadata Toggle</strong> (allows the test runner to trigger specific faults dynamically via query inputs like <code>email='chaos-dml@test.com'</code> or <code>subject='[CHAOS_CPU_TIMEOUT]'</code>, with optional org-wide Custom Metadata switches).</li>
-<li><strong>Experience Cloud Timeout Simulation:</strong> <strong>Dual-SLA Profiler</strong> (measures turn latency, flags passes/fails against both the 15s Experience Cloud MIAW client budget and the 45s Builder budget, and identifies impending connection drops).</li>
-<li><strong>Hallucination Detection:</strong> <strong>Comprehensive Native Audit</strong> (flags false-success affirmations on DML failure, flags fabricated 8-digit Salesforce Case numbers like <code>00010492</code>, and validates safe graceful degradation).</li>
+<li><strong>Failure Injection Boundary:</strong> Reusable <strong><code>AgentChaosEngine.cls</code> Strategy Pattern</strong>. Any Invocable Apex Action in Salesforce (Case, Lead, Custom Objects) calls <code>AgentChaosEngine.evaluate()</code> with 2 lines of code to inherit CPU timeouts, DML exceptions, and SOQL limits.</li>
+<li><strong>Pluggable Audit Rule Engine:</strong> <strong><code>NativeHallucinationAuditor</code></strong> with abstract <code>BaseAuditRule</code>. Developers can register custom entity patterns (e.g. <code>INV-\d+</code>, <code>POL-\d+</code>) or plug in custom rules (e.g. preventing internal schema leakages) dynamically.</li>
+<li><strong>Multi-Channel SLA Profiler:</strong> <strong><code>NativeSLAProfiler</code></strong> with extensible <code>ChannelBudget</code>s. Evaluates against Experience Cloud (15s), Slack (25s), WhatsApp (20s), and Agent Builder (45s), with custom channel registration support.</li>
+<li><strong>Target Business Domain:</strong> <strong>Case Management &amp; Support Escalation</strong> (<code>CaseSupportChaosAction.cls</code>).</li>
+<li><strong>Chaos Control Mechanism:</strong> <strong>Hybrid Dynamic Keyword + Custom Metadata Toggle</strong> (allows on-the-fly fault triggers via test input parameters or declarative metadata).</li>
+<li><strong>Zero-Lock-in Deployment:</strong> Single CLI export command (<code>agent-chaos salesforce export-apex</code>) generating clean, production-grade Apex source and XML metadata.</li>
 </ol>
 <hr />
 <h2>🏗️ Architecture &amp; Interaction Flow</h2>

@@ -9,12 +9,12 @@
 
 Through the `/grill-me` architectural review, we established the following decisions for the native Salesforce POC:
 
-1. **Failure Injection Boundary:** Native **Apex Invocable Chaos Framework** (`CaseSupportChaosAction.cls`). Injects DML validation exceptions, Apex CPU governor timeouts (up to 10s CPU limit), SOQL recordset corruption, and unhandled errors directly into Agentforce actions.
-2. **Test Driving Strategy:** **Einstein Agent API Test Runner** (Python / CLI driver using Salesforce OAuth 2.0 to drive headless multi-turn conversations against the agent).
-3. **Target Business Domain:** **Case Management & Support Escalation** (Creating and routing customer support cases).
-4. **Chaos Control Mechanism:** **Hybrid Dynamic Keyword + Custom Metadata Toggle** (allows the test runner to trigger specific faults dynamically via query inputs like `email='chaos-dml@test.com'` or `subject='[CHAOS_CPU_TIMEOUT]'`, with optional org-wide Custom Metadata switches).
-5. **Experience Cloud Timeout Simulation:** **Dual-SLA Profiler** (measures turn latency, flags passes/fails against both the 15s Experience Cloud MIAW client budget and the 45s Builder budget, and identifies impending connection drops).
-6. **Hallucination Detection:** **Comprehensive Native Audit** (flags false-success affirmations on DML failure, flags fabricated 8-digit Salesforce Case numbers like `00010492`, and validates safe graceful degradation).
+1. **Failure Injection Boundary:** Reusable **`AgentChaosEngine.cls` Strategy Pattern**. Any Invocable Apex Action in Salesforce (Case, Lead, Custom Objects) calls `AgentChaosEngine.evaluate()` with 2 lines of code to inherit CPU timeouts, DML exceptions, and SOQL limits.
+2. **Pluggable Audit Rule Engine:** **`NativeHallucinationAuditor`** with abstract `BaseAuditRule`. Developers can register custom entity patterns (e.g. `INV-\d+`, `POL-\d+`) or plug in custom rules (e.g. preventing internal schema leakages) dynamically.
+3. **Multi-Channel SLA Profiler:** **`NativeSLAProfiler`** with extensible `ChannelBudget`s. Evaluates against Experience Cloud (15s), Slack (25s), WhatsApp (20s), and Agent Builder (45s), with custom channel registration support.
+4. **Target Business Domain:** **Case Management & Support Escalation** (`CaseSupportChaosAction.cls`).
+5. **Chaos Control Mechanism:** **Hybrid Dynamic Keyword + Custom Metadata Toggle** (allows on-the-fly fault triggers via test input parameters or declarative metadata).
+6. **Zero-Lock-in Deployment:** Single CLI export command (`agent-chaos salesforce export-apex`) generating clean, production-grade Apex source and XML metadata.
 
 ---
 
