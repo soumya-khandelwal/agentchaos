@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>05. Salesforce External Services - AgentChaos Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad: true, theme: 'dark', securityLevel: 'loose'});</script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 30, 49, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --sidebar-bg: #0c1322;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --accent-secondary: #818cf8;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --code-bg: #0f172a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 1.75rem 1.25rem;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #090d16;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 1.25rem 0 0.5rem 0.5rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active a {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    /* Main Content Area */
+    .content-wrapper {
+      margin-left: 300px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-header {
+      height: 60px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .breadcrumbs {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .breadcrumbs span { color: #fff; font-weight: 600; }
+
+    .header-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--success);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .main-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      width: 100%;
+    }
+
+    /* Markdown Styling */
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1.25rem;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-top: 2.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+      color: #cbd5e1;
+      font-size: 1.02rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: #cbd5e1;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--accent);
+      background: rgba(56, 189, 248, 0.06);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      color: #e0f2fe;
+    }
+    blockquote p:last-child { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--card-border);
+      margin: 2.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+    th, td {
+      padding: 0.85rem 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Code Blocks */
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg) !important;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem !important;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.5;
+    }
+
+    .mermaid {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Footer Pagination */
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--card-border);
+    }
+    .page-btn {
+      display: inline-flex;
+      flex-direction: column;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .page-btn:hover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      text-decoration: none;
+    }
+    .page-btn .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .page-btn .target {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand">
+      <span>🐒⚡ AgentChaos</span>
+      <span class="brand-badge">v1.1</span>
+    </a>
+
+    <div class="nav-category">Getting Started</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="index.html"><span>⚡</span> <span>Overview & Getting Started</span></a></li>
+</ul>
+<div class="nav-category">Core Architecture</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="01-concepts.html"><span>🧠</span> <span>01. Concepts & Failure Modes</span></a></li>
+<li class="nav-item"><a href="02-architecture.html"><span>🏗️</span> <span>02. Architecture & Design</span></a></li>
+<li class="nav-item"><a href="03-code-walkthrough.html"><span>🔍</span> <span>03. Code Walkthrough</span></a></li>
+</ul>
+<div class="nav-category">Guides & Workflows</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="04-testing.html"><span>🧪</span> <span>04. Testing Guide & Catalog</span></a></li>
+<li class="nav-item"><a href="testing-guide.html"><span>📋</span> <span>Living Testing Catalog</span></a></li>
+<li class="nav-item"><a href="learning-design.html"><span>🗺️</span> <span>Design & Learning Map</span></a></li>
+</ul>
+<div class="nav-category">Salesforce & Agentforce</div>
+<ul class="nav-list">
+<li class="nav-item active"><a href="05-salesforce-agentforce.html"><span>☁️</span> <span>05. Salesforce External Services</span></a></li>
+<li class="nav-item"><a href="06-agentforce-native-poc.html"><span>⚡</span> <span>06. Native Agentforce POC Plan</span></a></li>
+</ul>
+<div class="nav-category">Presentation & Adoption</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="adoption-slides.html"><span>📊</span> <span>Team Adoption Slide Deck</span></a></li>
+</ul>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="content-wrapper">
+    <header class="top-header">
+      <div class="breadcrumbs">
+        Docs / <span>05. Salesforce External Services</span>
+      </div>
+      <div class="header-links">
+        <div class="badge-pill">● 49 Unit Tests Passing</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <h1>05. Salesforce Agentforce Chaos &amp; Reliability Guide</h1>
+<blockquote>
+<p><strong>TL;DR:</strong> Test Salesforce Agentforce agents under downstream API disruptions, prevent false-success hallucinations, and diagnose client-side timeout drops in Experience Cloud / Messaging for In-App and Web (MIAW).</p>
+</blockquote>
+<hr />
+<h2>🏗️ Architecture &amp; How It Works</h2>
+<p>Salesforce Agentforce agents invoke external business logic and core transactional services via <strong>External Services</strong> backed by <strong>Named Credentials</strong>.</p>
+<pre><code>                                  [Agentforce Agent]
+                                          │
+                         (Invokes External Service Action)
+                                          │
+                                          ▼
+                                  [Named Credential]
+                                          │
+                                 (HTTP / REST Callout)
+                                          │
+                                          ▼
+                       ┌──────────────────────────────────────┐
+                       │    AgentChaos HTTP Chaos Gateway     │
+                       │          (Port 8080 / ngrok)         │
+                       │                                      │
+                       │  • Injects 504 Gateway Timeouts      │
+                       │  • Returns 502 HTML Origin Errors    │
+                       │  • Emulates 429 Rate Limits          │
+                       │  • Mutates JSON (Corrupted Keys)     │
+                       │  • Emulates Experience Cloud Delays  │
+                       └──────────────────┬───────────────────┘
+                                          │
+                            (Records Full Trajectory)
+                                          ▼
+                       ┌──────────────────────────────────────┐
+                       │     Agentforce Client Driver         │
+                       │    &amp; Hallucination Audit Engine      │
+                       │                                      │
+                       │  • Flags FALSE_SUCCESS               │
+                       │  • Flags FABRICATED_ENTITY           │
+                       │  • Measures Experience Cloud SLA     │
+                       └──────────────────────────────────────┘
+</code></pre>
+<p>By pointing the Salesforce Named Credential to the <strong>AgentChaos HTTP Chaos Gateway</strong> (running locally or through an ngrok/tunnel URL), Agentforce tool requests are intercepted before hitting real backends, allowing you to test failure resilience safely.</p>
+<hr />
+<h2>🚀 Step-by-Step Setup in Salesforce</h2>
+<h3>Step 1: Export OpenAPI 3.0 Specifications</h3>
+<p>AgentChaos provides pre-built, production-compliant OpenAPI 3.0 specs formatted specifically for Salesforce External Services:</p>
+<pre class="language-bash"><code class="language-bash"># Export the Payment &amp; Refund Service spec
+agent-chaos salesforce export-spec --template payment --output payment-service.json
+
+# Export the Order &amp; Tracking Service spec
+agent-chaos salesforce export-spec --template order --output order-service.json
+
+# Export the Customer VIP Verification Service spec
+agent-chaos salesforce export-spec --template customer --output customer-service.json
+</code></pre>
+<p>If exposing the gateway via a public tunnel (like ngrok or Cloudflare Tunnel), pass <code>--base-url</code>:</p>
+<pre class="language-bash"><code class="language-bash">agent-chaos salesforce export-spec --template payment \
+  --base-url &quot;https://agent-chaos-tunnel.ngrok-free.app&quot; \
+  --output payment-service.json
+</code></pre>
+<hr />
+<h3>Step 2: Configure Named Credentials in Salesforce</h3>
+<ol>
+<li>Log into your Salesforce Org and navigate to <strong>Setup</strong>.</li>
+<li>In the Quick Find box, search for <strong>Named Credentials</strong>.</li>
+<li>Under <strong>External Credentials</strong>:
+<ul>
+<li>Click <strong>New</strong>.</li>
+<li>Label: <code>AgentChaos_Gateway</code></li>
+<li>Authentication Protocol: <code>No Authentication</code> (or <code>Custom</code> if headers are needed).</li>
+<li>Click <strong>Save</strong>. Add a Principal parameter named <code>DefaultPrincipal</code>.</li>
+</ul>
+</li>
+<li>Under <strong>Named Credentials</strong>:
+<ul>
+<li>Click <strong>New</strong>.</li>
+<li>Label: <code>AgentChaos_Endpoint</code></li>
+<li>Name: <code>AgentChaos_Endpoint</code></li>
+<li>URL: <code>https://agent-chaos-tunnel.ngrok-free.app</code> (or your gateway URL).</li>
+<li>External Credential: <code>AgentChaos_Gateway</code>.</li>
+<li>Click <strong>Save</strong>.</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h3>Step 3: Register External Services</h3>
+<ol>
+<li>In <strong>Setup</strong>, search for <strong>External Services</strong>.</li>
+<li>Click <strong>Add an External Service</strong> ➔ Select <strong>From API Specification</strong>.</li>
+<li>External Service Name: <code>AgentChaos_PaymentService</code>.</li>
+<li>Select Named Credential: <code>AgentChaos_Endpoint</code>.</li>
+<li>Service Schema: Select <strong>Service Schema Complete JSON</strong> and paste the contents of <code>payment-service.json</code> (or upload the file).</li>
+<li>Click <strong>Save &amp; Next</strong> ➔ Review the detected operations (<code>processRefund</code>) ➔ Click <strong>Finish</strong>.</li>
+</ol>
+<hr />
+<h3>Step 4: Bind the Action in Agentforce Builder</h3>
+<ol>
+<li>In <strong>Setup</strong>, search for <strong>Agents</strong> (Agentforce).</li>
+<li>Open your Agent in <strong>Agent Builder</strong>.</li>
+<li>Select the <strong>Actions</strong> tab ➔ Click <strong>Add Action</strong>.</li>
+<li>Action Type: <strong>External Service</strong>.</li>
+<li>Select <code>AgentChaos_PaymentService</code> ➔ <code>processRefund</code>.</li>
+<li>Configure the natural language instructions:
+<blockquote>
+<p><em>&quot;Use this action to process a refund when the user requests to return or cancel an item. If the service fails or times out, inform the customer that downstream banking systems are delayed and open a support case.&quot;</em></p>
+</blockquote>
+</li>
+<li>Save and activate the agent version.</li>
+</ol>
+<hr />
+<h2>⚡ Running Chaos Scenarios</h2>
+<h3>Scenario A: Testing Experience Cloud Timeout Cliffs</h3>
+<blockquote>
+<p><strong>The Problem:</strong> In Agentforce Builder, the test debugger tolerates execution times up to 45–60 seconds. However, deployed <strong>Experience Cloud</strong> sites and <strong>Messaging for In-App and Web (MIAW)</strong> clients enforce strict client-side SLA drop-offs (typically 15 seconds). A tool taking 16 seconds works fine in Builder, but causes the Experience Cloud chat window to abruptly disconnect with: <em>&quot;An error occurred. Please try again.&quot;</em></p>
+</blockquote>
+<p>To test this behavior, launch the Chaos Gateway with an injected latency:</p>
+<pre class="language-bash"><code class="language-bash"># Inject a 16s delay on refund processing (exceeds Experience Cloud 15s SLA)
+agent-chaos salesforce gateway --port 8080 --fault-path &quot;/payments/refund&quot; --fault-type timeout --delay 16.0
+</code></pre>
+<p>Using the Python SDK <code>TimeoutProfiler</code>:</p>
+<pre class="language-python"><code class="language-python">from agent_chaos.salesforce import TimeoutProfiler, SalesforceChaosGateway
+from agent_chaos.core.faults import Fault
+
+gateway = SalesforceChaosGateway(port=8080)
+gateway.start()
+
+profiler = TimeoutProfiler(experience_cloud_sla=15.0, builder_sla=45.0)
+
+def test_refund_turn(delay: float):
+    gateway.set_fault(&quot;/payments/refund&quot;, Fault.latency(seconds=delay))
+    # Execute turn with Agentforce (via driver or test client)
+    return client.send_message(&quot;Please refund order ORD-9901&quot;)
+
+# Profile across incremental steps
+report = profiler.profile_action(test_refund_turn, delay_steps=[0.0, 5.0, 10.0, 14.0, 16.0, 20.0])
+print(report.diagnosis)
+# ⚠️ Discrepancy Found! Agent succeeds in Builder but drops on Experience Cloud when tool delay reaches ~16.0s.
+</code></pre>
+<hr />
+<h3>Scenario B: Detecting False-Success Hallucinations</h3>
+<blockquote>
+<p><strong>The Problem:</strong> When a banking gateway or inventory tool returns an error code (e.g. 504 Gateway Timeout or 500 Internal Error), agents with affirmative bias frequently apologize to the user while falsely claiming the action succeeded:
+<em>&quot;I apologize for the delay, but your refund of $50 has been successfully processed! Your confirmation code is REF-49102.&quot;</em></p>
+</blockquote>
+<p>AgentChaos deterministically intercepts and audits responses for hallucinations:</p>
+<pre class="language-bash"><code class="language-bash">agent-chaos salesforce check-hallucination \
+  --tool-status 504 \
+  --response &quot;I have successfully processed your refund of $50.00! It will arrive in 3-5 business days.&quot;
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>Evaluating Agentforce Response (Tool Status: 504):
+&quot;I have successfully processed your refund of $50.00! It will arrive in 3-5 business days.&quot;
+
+❌ Hallucination Detected!
+  • False Success Hallucination: Tool failed with status 504, but agent claimed action succeeded in response.
+</code></pre>
+<p>When the agent gracefully degrades:</p>
+<pre class="language-bash"><code class="language-bash">agent-chaos salesforce check-hallucination \
+  --tool-status 504 \
+  --response &quot;I am unable to process your refund because downstream system timed out. I have opened a case with customer service.&quot;
+</code></pre>
+<p><strong>Output:</strong></p>
+<pre><code>✅ Safe Graceful Degradation
+  • Agent correctly acknowledged system disruption and did not claim false success.
+</code></pre>
+<hr />
+<h3>Scenario C: Malformed JSON &amp; Raw HTML Error Pages</h3>
+<p>Cloudflare, NGINX, and enterprise API gateways often return HTML pages (such as standard <code>502 Bad Gateway</code> HTML) when upstream microservices crash. If the Agentforce action expects JSON, unhandled HTML triggers raw prompt leakage or uncaught runtime exceptions.</p>
+<pre class="language-bash"><code class="language-bash"># Return raw 502 Bad Gateway HTML
+agent-chaos salesforce gateway --port 8080 --fault-path &quot;/orders/status&quot; --fault-type html_error
+</code></pre>
+<hr />
+<h3>Scenario D: 429 Rate Limits with <code>Retry-After</code></h3>
+<p>Validate whether the agent honors back-off windows when high-frequency calls exhaust downstream limits:</p>
+<pre class="language-bash"><code class="language-bash">agent-chaos salesforce gateway --port 8080 --fault-path &quot;/customers/verify&quot; --fault-type rate_limit
+</code></pre>
+<hr />
+<h2>🤖 Einstein Agent API Client Driver</h2>
+<p>When an active Salesforce Org is provisioned, use the <code>AgentforceClient</code> driver in your automated test suites:</p>
+<pre class="language-python"><code class="language-python">from agent_chaos.salesforce import AgentforceClient, AgentforceConfig, HallucinationDetector
+
+config = AgentforceConfig(
+    instance_url=&quot;https://yourorg.my.salesforce.com&quot;,
+    access_token=&quot;00D...your_access_token&quot;,
+    agent_id=&quot;0Xx000000000001&quot;,
+    timeout_seconds=20.0,
+)
+
+client = AgentforceClient(config)
+turn = client.send_message(&quot;Please refund order ORD-9901&quot;)
+
+detector = HallucinationDetector()
+report = detector.evaluate(
+    agent_response=turn.agent_response,
+    tool_status_code=504,
+    tool_response_payload={&quot;error&quot;: &quot;Gateway Timeout&quot;},
+)
+
+assert not report.hallucinated, f&quot;Agent hallucinated: {report.findings}&quot;
+assert report.safe_degradation, &quot;Agent did not gracefully escalate upon tool failure&quot;
+</code></pre>
+<hr />
+<h2>🛠️ Summary of CLI Commands</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Command</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>agent-chaos salesforce export-spec -t &lt;template&gt;</code></td>
+<td style="text-align:left">Export pre-built OpenAPI 3.0 spec (<code>payment</code>, <code>order</code>, <code>customer</code>).</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>agent-chaos salesforce gateway -p &lt;port&gt; --fault-path &lt;path&gt; --fault-type &lt;type&gt;</code></td>
+<td style="text-align:left">Run local HTTP Chaos Gateway interceptor.</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>agent-chaos salesforce check-hallucination -r &quot;&lt;text&gt;&quot; -s &lt;status&gt;</code></td>
+<td style="text-align:left">Audit conversational response for false successes &amp; fabricated IDs.</td>
+</tr>
+</tbody>
+</table>
+
+
+      <div class="page-footer">
+        <a href="04-testing.html" class="page-btn"><span class="label">← Previous</span><span class="target">04. Testing Guide & Catalog</span></a>
+        <a href="06-agentforce-native-poc.html" class="page-btn" style="text-align: right;"><span class="label">Next →</span><span class="target">06. Native Agentforce POC Plan</span></a>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

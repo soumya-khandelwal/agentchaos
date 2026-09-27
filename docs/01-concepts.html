@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>01. Concepts & Failure Modes - AgentChaos Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad: true, theme: 'dark', securityLevel: 'loose'});</script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 30, 49, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --sidebar-bg: #0c1322;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --accent-secondary: #818cf8;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --code-bg: #0f172a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 1.75rem 1.25rem;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #090d16;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 1.25rem 0 0.5rem 0.5rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active a {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    /* Main Content Area */
+    .content-wrapper {
+      margin-left: 300px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-header {
+      height: 60px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .breadcrumbs {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .breadcrumbs span { color: #fff; font-weight: 600; }
+
+    .header-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--success);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .main-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      width: 100%;
+    }
+
+    /* Markdown Styling */
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1.25rem;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-top: 2.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+      color: #cbd5e1;
+      font-size: 1.02rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: #cbd5e1;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--accent);
+      background: rgba(56, 189, 248, 0.06);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      color: #e0f2fe;
+    }
+    blockquote p:last-child { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--card-border);
+      margin: 2.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+    th, td {
+      padding: 0.85rem 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Code Blocks */
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg) !important;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem !important;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.5;
+    }
+
+    .mermaid {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Footer Pagination */
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--card-border);
+    }
+    .page-btn {
+      display: inline-flex;
+      flex-direction: column;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .page-btn:hover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      text-decoration: none;
+    }
+    .page-btn .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .page-btn .target {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand">
+      <span>🐒⚡ AgentChaos</span>
+      <span class="brand-badge">v1.1</span>
+    </a>
+
+    <div class="nav-category">Getting Started</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="index.html"><span>⚡</span> <span>Overview & Getting Started</span></a></li>
+</ul>
+<div class="nav-category">Core Architecture</div>
+<ul class="nav-list">
+<li class="nav-item active"><a href="01-concepts.html"><span>🧠</span> <span>01. Concepts & Failure Modes</span></a></li>
+<li class="nav-item"><a href="02-architecture.html"><span>🏗️</span> <span>02. Architecture & Design</span></a></li>
+<li class="nav-item"><a href="03-code-walkthrough.html"><span>🔍</span> <span>03. Code Walkthrough</span></a></li>
+</ul>
+<div class="nav-category">Guides & Workflows</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="04-testing.html"><span>🧪</span> <span>04. Testing Guide & Catalog</span></a></li>
+<li class="nav-item"><a href="testing-guide.html"><span>📋</span> <span>Living Testing Catalog</span></a></li>
+<li class="nav-item"><a href="learning-design.html"><span>🗺️</span> <span>Design & Learning Map</span></a></li>
+</ul>
+<div class="nav-category">Salesforce & Agentforce</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="05-salesforce-agentforce.html"><span>☁️</span> <span>05. Salesforce External Services</span></a></li>
+<li class="nav-item"><a href="06-agentforce-native-poc.html"><span>⚡</span> <span>06. Native Agentforce POC Plan</span></a></li>
+</ul>
+<div class="nav-category">Presentation & Adoption</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="adoption-slides.html"><span>📊</span> <span>Team Adoption Slide Deck</span></a></li>
+</ul>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="content-wrapper">
+    <header class="top-header">
+      <div class="breadcrumbs">
+        Docs / <span>01. Concepts & Failure Modes</span>
+      </div>
+      <div class="header-links">
+        <div class="badge-pill">● 49 Unit Tests Passing</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <h1>01. Core Concepts: Why Agents Break</h1>
+<blockquote>
+<p><strong>TL;DR:</strong> When LLMs interact with external tools (APIs, databases), traditional error handling fails. Agents don't crash gracefully; they hallucinate fake success, get stuck in infinite retry loops, or call unauthorized fallback tools.</p>
+</blockquote>
+<hr />
+<h2>The 3 Stages of an Agent Tool Call</h2>
+<pre class="language-text"><code class="language-text">User Dialogue --&gt; [ 1. Model Thinks ] --&gt; Generates Tool Call JSON
+                                                |
+                                                v
+Real World    &lt;-- [ 3. Model Synthesizes ] &lt;-- [ 2. Tool Executes ]
+</code></pre>
+<ol>
+<li><strong>Reasoning:</strong> Model parses user intent and outputs tool arguments:
+<code>process_refund(order_id=&quot;ORD-101&quot;, amount=750)</code></li>
+<li><strong>Execution:</strong> Your backend executes the function. What if the network fails or returns <code>504 Timeout</code>?</li>
+<li><strong>Synthesis:</strong> Model receives the error message and decides what to do next.</li>
+</ol>
+<hr />
+<h2>The 4 Silent Killers in Production</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Failure Mode</th>
+<th style="text-align:left">What Actually Happens</th>
+<th style="text-align:left">Real-World Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>1. Fake Success</strong></td>
+<td style="text-align:left">Tool fails, but agent tells customer: <em>&quot;Done! Refund sent.&quot;</em></td>
+<td style="text-align:left">Customer confusion, chargebacks, broken trust.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>2. Infinite Retry Loop</strong></td>
+<td style="text-align:left">Tool returns <code>429 Rate Limit</code>. Agent retries 20 times in a row.</td>
+<td style="text-align:left">Database hammered, token bill spikes by $50+.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>3. Dangerous Fallback</strong></td>
+<td style="text-align:left">Read-only tool fails; agent tries an unauthorized write tool.</td>
+<td style="text-align:left">Data corruption or unintended state mutations.</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>4. Data Poisoning</strong></td>
+<td style="text-align:left">Tool returns text containing indirect prompt injection.</td>
+<td style="text-align:left">Agent hijacked to leak credentials or bypass policy.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Why <code>try / except</code> Isn't Enough</h2>
+<p>Traditional code testing checks:</p>
+<blockquote>
+<p><em>&quot;Does my Python function throw an unhandled exception?&quot;</em></p>
+</blockquote>
+<p>Agent testing must check:</p>
+<blockquote>
+<p><em><strong>&quot;When my Python function throws an error, how does the AI model react to that error in its next action?&quot;</strong></em></p>
+</blockquote>
+<p>AgentChaos tests this behavioral boundary.</p>
+<hr />
+<p><a href="02-architecture.html">Next: 02. Architecture &amp; Technical Design →</a></p>
+
+
+      <div class="page-footer">
+        <a href="index.html" class="page-btn"><span class="label">← Previous</span><span class="target">Overview & Getting Started</span></a>
+        <a href="02-architecture.html" class="page-btn" style="text-align: right;"><span class="label">Next →</span><span class="target">02. Architecture & Design</span></a>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>

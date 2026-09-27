@@ -202,6 +202,39 @@ def tui_command(iterations: int) -> None:
     monitor.run_demo(iterations=iterations)
 
 
+@cli.command("docs")
+@click.option("--build", is_flag=True, default=False, help="Rebuild HTML documentation portal from markdown.")
+@click.option("--serve", is_flag=True, default=False, help="Serve HTML documentation on a local web server.")
+@click.option("--port", default=3000, type=int, help="Port to serve on (default: 3000).")
+def docs_command(build: bool, serve: bool, port: int) -> None:
+    """View, rebuild, or serve the AgentChaos HTML documentation portal."""
+    import http.server
+    import socketserver
+    from pathlib import Path
+    import subprocess
+    import sys
+
+    docs_dir = Path("/home/soumikhandelwal/agent-chaos/docs")
+    script_path = Path("/home/soumikhandelwal/agent-chaos/scripts/build_html_docs.py")
+
+    if build or not (docs_dir / "index.html").exists():
+        console.print("[bold cyan]🔨 Building HTML documentation portal...[/bold cyan]")
+        subprocess.run([sys.executable, str(script_path)], check=True)
+
+    console.print(f"[bold green]✓ HTML Documentation available at:[/bold green] [underline]file://{docs_dir}/index.html[/underline]")
+
+    if serve:
+        os.chdir(docs_dir)
+        handler = http.server.SimpleHTTPRequestHandler
+        with socketserver.TCPServer(("", port), handler) as httpd:
+            console.print(f"[bold cyan]⚡ Documentation server running at[/bold cyan] [green]http://localhost:{port}[/green]")
+            console.print("[dim]Press Ctrl+C to terminate.[/dim]")
+            try:
+                httpd.serve_forever()
+            except KeyboardInterrupt:
+                console.print("\n[yellow]Server stopped.[/yellow]")
+
+
 @cli.group("salesforce")
 def salesforce_group() -> None:
     """Salesforce Agentforce reliability testing, External Services gateway, and hallucination audits."""

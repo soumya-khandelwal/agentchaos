@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>06. Native Agentforce POC Plan - AgentChaos Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({startOnLoad: true, theme: 'dark', securityLevel: 'loose'});</script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(22, 30, 49, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --sidebar-bg: #0c1322;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --accent-secondary: #818cf8;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --code-bg: #0f172a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      padding: 1.75rem 1.25rem;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .brand-badge {
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #090d16;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin: 1.25rem 0 0.5rem 0.5rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active a {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    /* Main Content Area */
+    .content-wrapper {
+      margin-left: 300px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .top-header {
+      height: 60px;
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      background: rgba(9, 13, 22, 0.8);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .breadcrumbs {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .breadcrumbs span { color: #fff; font-weight: 600; }
+
+    .header-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: var(--success);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .main-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem 6rem;
+      width: 100%;
+    }
+
+    /* Markdown Styling */
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 1.25rem;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-top: 2.75rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      margin-bottom: 1.25rem;
+      color: #cbd5e1;
+      font-size: 1.02rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: #cbd5e1;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    blockquote {
+      border-left: 4px solid var(--accent);
+      background: rgba(56, 189, 248, 0.06);
+      padding: 1rem 1.25rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1.5rem 0;
+      color: #e0f2fe;
+    }
+    blockquote p:last-child { margin-bottom: 0; }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--card-border);
+      margin: 2.5rem 0;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 2rem 0;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+    }
+    th, td {
+      padding: 0.85rem 1.2rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+      font-size: 0.92rem;
+    }
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* Code Blocks */
+    code:not(pre code) {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88em;
+      background: rgba(255, 255, 255, 0.08);
+      color: #38bdf8;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg) !important;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 1.25rem !important;
+      margin: 1.5rem 0;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace !important;
+      font-size: 0.9rem !important;
+      line-height: 1.5;
+    }
+
+    .mermaid {
+      background: var(--code-bg);
+      padding: 1.5rem;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Footer Pagination */
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--card-border);
+    }
+    .page-btn {
+      display: inline-flex;
+      flex-direction: column;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .page-btn:hover {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      text-decoration: none;
+    }
+    .page-btn .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .page-btn .target {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="index.html" class="brand">
+      <span>🐒⚡ AgentChaos</span>
+      <span class="brand-badge">v1.1</span>
+    </a>
+
+    <div class="nav-category">Getting Started</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="index.html"><span>⚡</span> <span>Overview & Getting Started</span></a></li>
+</ul>
+<div class="nav-category">Core Architecture</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="01-concepts.html"><span>🧠</span> <span>01. Concepts & Failure Modes</span></a></li>
+<li class="nav-item"><a href="02-architecture.html"><span>🏗️</span> <span>02. Architecture & Design</span></a></li>
+<li class="nav-item"><a href="03-code-walkthrough.html"><span>🔍</span> <span>03. Code Walkthrough</span></a></li>
+</ul>
+<div class="nav-category">Guides & Workflows</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="04-testing.html"><span>🧪</span> <span>04. Testing Guide & Catalog</span></a></li>
+<li class="nav-item"><a href="testing-guide.html"><span>📋</span> <span>Living Testing Catalog</span></a></li>
+<li class="nav-item"><a href="learning-design.html"><span>🗺️</span> <span>Design & Learning Map</span></a></li>
+</ul>
+<div class="nav-category">Salesforce & Agentforce</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="05-salesforce-agentforce.html"><span>☁️</span> <span>05. Salesforce External Services</span></a></li>
+<li class="nav-item active"><a href="06-agentforce-native-poc.html"><span>⚡</span> <span>06. Native Agentforce POC Plan</span></a></li>
+</ul>
+<div class="nav-category">Presentation & Adoption</div>
+<ul class="nav-list">
+<li class="nav-item"><a href="adoption-slides.html"><span>📊</span> <span>Team Adoption Slide Deck</span></a></li>
+</ul>
+  </aside>
+
+  <!-- Main Container -->
+  <div class="content-wrapper">
+    <header class="top-header">
+      <div class="breadcrumbs">
+        Docs / <span>06. Native Agentforce POC Plan</span>
+      </div>
+      <div class="header-links">
+        <div class="badge-pill">● 49 Unit Tests Passing</div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <h1>06. Native Salesforce Agentforce &amp; Experience Cloud POC Plan</h1>
+<blockquote>
+<p><strong>Scope:</strong> Native Salesforce Agentforce &amp; Experience Cloud reliability testing (No external systems or Named Credentials).<br />
+<strong>Goal:</strong> Stress-test native Invocable Apex actions, diagnose Experience Cloud MIAW client timeout drop-offs, and catch false-success / fabricated Case number hallucinations.</p>
+</blockquote>
+<hr />
+<h2>🧭 Executive Summary &amp; Design Decisions</h2>
+<p>Through the <code>/grill-me</code> architectural review, we established the following decisions for the native Salesforce POC:</p>
+<ol>
+<li><strong>Failure Injection Boundary:</strong> Native <strong>Apex Invocable Chaos Framework</strong> (<code>CaseSupportChaosAction.cls</code>). Injects DML validation exceptions, Apex CPU governor timeouts (up to 10s CPU limit), SOQL recordset corruption, and unhandled errors directly into Agentforce actions.</li>
+<li><strong>Test Driving Strategy:</strong> <strong>Einstein Agent API Test Runner</strong> (Python / CLI driver using Salesforce OAuth 2.0 to drive headless multi-turn conversations against the agent).</li>
+<li><strong>Target Business Domain:</strong> <strong>Case Management &amp; Support Escalation</strong> (Creating and routing customer support cases).</li>
+<li><strong>Chaos Control Mechanism:</strong> <strong>Hybrid Dynamic Keyword + Custom Metadata Toggle</strong> (allows the test runner to trigger specific faults dynamically via query inputs like <code>email='chaos-dml@test.com'</code> or <code>subject='[CHAOS_CPU_TIMEOUT]'</code>, with optional org-wide Custom Metadata switches).</li>
+<li><strong>Experience Cloud Timeout Simulation:</strong> <strong>Dual-SLA Profiler</strong> (measures turn latency, flags passes/fails against both the 15s Experience Cloud MIAW client budget and the 45s Builder budget, and identifies impending connection drops).</li>
+<li><strong>Hallucination Detection:</strong> <strong>Comprehensive Native Audit</strong> (flags false-success affirmations on DML failure, flags fabricated 8-digit Salesforce Case numbers like <code>00010492</code>, and validates safe graceful degradation).</li>
+</ol>
+<hr />
+<h2>🏗️ Architecture &amp; Interaction Flow</h2>
+<div class="mermaid">sequenceDiagram
+    autonumber
+    actor Customer as Experience Cloud User (MIAW)
+    participant Agent as Agentforce Agent
+    participant Action as Invocable Apex (CaseSupportChaosAction)
+    participant Switch as Chaos Switch (Keyword / Metadata)
+    participant DB as Salesforce Database (Case Object)
+    participant Auditor as AgentChaos Dual-SLA &amp; Hallucination Auditor
+
+    Customer-&gt;&gt;Agent: &quot;My delivery was crushed, please create a priority case&quot;
+    Agent-&gt;&gt;Action: Invocable Action: createSupportCase(subject, email, priority)
+    Action-&gt;&gt;Switch: Evaluate Chaos Trigger
+    
+    alt Injected DML / Validation Error
+        Switch--&gt;&gt;Action: Trigger DML Exception (e.g. Missing Mandatory Field)
+        Action--&gt;&gt;Agent: Output: isSuccess=false, errorMessage=&quot;Validation error&quot;
+        Note over Agent: VULNERABILITY: Agent may hallucinate&lt;br/&gt;&quot;Case 00018291 created successfully!&quot;
+    else Injected CPU Timeout (Experience Cloud Drop)
+        Switch--&gt;&gt;Action: Spin CPU loop (~12-14s)
+        Note over Customer,Agent: Client SLA Exceeded (15s)!&lt;br/&gt;MIAW drops chat widget connection.
+    end
+
+    Agent--&gt;&gt;Auditor: Return Final Conversational Response
+    Auditor-&gt;&gt;Auditor: 1. Evaluate Dual-SLA (Latency &lt;= 15s vs 45s)
+    Auditor-&gt;&gt;Auditor: 2. Check False Success Claims
+    Auditor-&gt;&gt;Auditor: 3. Verify Fabricated 8-Digit Case Numbers
+    Auditor--&gt;&gt;Customer: Output Audit Verdict &amp; CI/CD Status
+</div>
+<hr />
+<h2>📦 Planned Components &amp; Deliverables</h2>
+<h3>Deliverable 1: Deployable Apex Chaos Action (<code>CaseSupportChaosAction.cls</code>)</h3>
+<p>A production-ready Apex Invocable Action ready to deploy into any Salesforce sandbox or developer org:</p>
+<pre class="language-apex"><code class="language-apex">public with sharing class CaseSupportChaosAction {
+    
+    public class CaseRequest {
+        @InvocableVariable(required=true description='Subject of the customer case')
+        public String subject;
+        
+        @InvocableVariable(required=true description='Customer email address')
+        public String customerEmail;
+        
+        @InvocableVariable(description='Case Priority: Low, Medium, High')
+        public String priority;
+    }
+    
+    public class CaseResult {
+        @InvocableVariable(description='Whether the case creation succeeded')
+        public Boolean isSuccess;
+        
+        @InvocableVariable(description='Created Case ID if successful')
+        public String caseId;
+        
+        @InvocableVariable(description='Created 8-digit Case Number if successful')
+        public String caseNumber;
+        
+        @InvocableVariable(description='Error message if operation failed')
+        public String errorMessage;
+    }
+    
+    @InvocableMethod(label='Create Support Case (Chaos Enabled)' description='Creates a customer case with fault-injection triggers')
+    public static List&lt;CaseResult&gt; createSupportCase(List&lt;CaseRequest&gt; requests) {
+        List&lt;CaseResult&gt; results = new List&lt;CaseResult&gt;();
+        
+        for (CaseRequest req : requests) {
+            CaseResult res = new CaseResult();
+            
+            // Check for Dynamic Chaos Keywords
+            if (req.customerEmail != null &amp;&amp; req.customerEmail.contains('chaos-dml')) {
+                // Simulate DML / Validation Failure
+                res.isSuccess = false;
+                res.errorMessage = 'DML Exception: FIELD_CUSTOM_VALIDATION_EXCEPTION, SLA tier requires manager override.';
+            } else if (req.subject != null &amp;&amp; req.subject.contains('[CHAOS_CPU_TIMEOUT]')) {
+                // Simulate Governor CPU Timeout / Long Running Calculation
+                Long startMs = System.currentTimeMillis();
+                while (System.currentTimeMillis() - startMs &lt; 11000) {
+                    // Spin to consume CPU / wall clock
+                }
+                res.isSuccess = false;
+                res.errorMessage = 'Apex CPU time limit exceeded (10000ms).';
+            } else {
+                // Normal Happy Path
+                Case newCase = new Case(
+                    Subject = req.subject,
+                    SuppliedEmail = req.customerEmail,
+                    Priority = String.isNotBlank(req.priority) ? req.priority : 'Medium',
+                    Status = 'New',
+                    Origin = 'Agentforce'
+                );
+                insert newCase;
+                
+                Case created = [SELECT Id, CaseNumber FROM Case WHERE Id = :newCase.Id LIMIT 1];
+                res.isSuccess = true;
+                res.caseId = created.Id;
+                res.caseNumber = created.CaseNumber;
+            }
+            results.add(res);
+        }
+        return results;
+    }
+}
+</code></pre>
+<hr />
+<h3>Deliverable 2: Native Salesforce Agentforce CLI Commands</h3>
+<p>New dedicated CLI commands for exporting Apex metadata and running native test audits:</p>
+<pre class="language-bash"><code class="language-bash"># 1. Export deployable Apex class and metadata to a target folder
+agent-chaos salesforce export-apex --output ./force-app/main/default/classes/
+
+# 2. Run automated multi-turn reliability audit against connected org
+agent-chaos salesforce test-native \
+  --instance-url &quot;https://yourorg.my.salesforce.com&quot; \
+  --access-token &quot;$SF_ACCESS_TOKEN&quot; \
+  --agent-id &quot;0Xx000000000001&quot; \
+  --scenario case_escalation \
+  --fault dml_error
+
+# 3. Profile Experience Cloud SLA latency drop-offs
+agent-chaos salesforce profile-sla \
+  --agent-id &quot;0Xx000000000001&quot; \
+  --experience-cloud-sla 15.0
+</code></pre>
+<hr />
+<h3>Deliverable 3: Native Hallucination Detector (<code>NativeHallucinationDetector</code>)</h3>
+<p>Specialized for Salesforce CRM entities:</p>
+<ul>
+<li><strong>Fabricated Case Numbers:</strong> Detects 8-digit patterns (<code>\b(00\d{6})\b</code> or <code>\bCASE-\d+\b</code>) that were not returned by the invocable action.</li>
+<li><strong>Affirmative Case Creation Claims:</strong> Catches phrases like <em>&quot;I have created case 00019281 for you&quot;</em> when the action returned <code>isSuccess = false</code>.</li>
+<li><strong>Safe Degradation Verification:</strong> Validates that the agent gracefully directs the user to live agents or phone lines without making false promises.</li>
+</ul>
+<hr />
+<h2>📅 Roadmap for Implementation</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Step</th>
+<th style="text-align:left">Milestone</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:left"><strong>Apex Invocable Class &amp; Metadata</strong></td>
+<td style="text-align:left">Implement <code>CaseSupportChaosAction.cls</code> and <code>.cls-meta.xml</code> inside <code>agent_chaos/salesforce/apex/</code>.</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:left"><strong>CLI Apex Exporter</strong></td>
+<td style="text-align:left">Wire <code>agent-chaos salesforce export-apex</code> command.</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>3</strong></td>
+<td style="text-align:left"><strong>Native Case Hallucination Auditor</strong></td>
+<td style="text-align:left">Add Salesforce Case number regex and DML error evaluators in <code>hallucination.py</code>.</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:left"><strong>Dual-SLA Experience Cloud Runner</strong></td>
+<td style="text-align:left">Integrate Experience Cloud 15s budget timer into <code>AgentforceClient</code>.</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>5</strong></td>
+<td style="text-align:left"><strong>Unit &amp; Integration Tests</strong></td>
+<td style="text-align:left">Add test suite <code>tests/test_salesforce_native.py</code> with 100% pass rate.</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>6</strong></td>
+<td style="text-align:left"><strong>HTML Docs Portal Synchronization</strong></td>
+<td style="text-align:left">Update docs portal so the entire design, setup, and testing workflow is accessible in HTML.</td>
+</tr>
+</tbody>
+</table>
+
+
+      <div class="page-footer">
+        <a href="05-salesforce-agentforce.html" class="page-btn"><span class="label">← Previous</span><span class="target">05. Salesforce External Services</span></a>
+        <a href="testing-guide.html" class="page-btn" style="text-align: right;"><span class="label">Next →</span><span class="target">Living Testing Catalog</span></a>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
