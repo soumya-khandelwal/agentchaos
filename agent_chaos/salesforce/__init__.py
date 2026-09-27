@@ -44,6 +44,10 @@ from agent_chaos.salesforce.native import (
     NativeSLAProfiler,
     RuleViolation,
     export_apex_classes,
+    NativeAgentforceRunner,
+    NativeScenarioStep,
+    NativeScenarioReport,
+    generate_native_html_report,
 )
 
 __all__ = [
@@ -63,6 +67,10 @@ __all__ = [
     "ORDER_SERVICE_SPEC",
     "CUSTOMER_SERVICE_SPEC",
     "get_template_spec",
+    "NativeAgentforceRunner",
+    "NativeScenarioStep",
+    "NativeScenarioReport",
+    "generate_native_html_report",
     "export_apex_classes",
     "APEX_ENGINE_CLS",
     "APEX_ENGINE_META",

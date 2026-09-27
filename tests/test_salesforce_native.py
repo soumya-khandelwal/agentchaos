@@ -210,3 +210,53 @@ def test_sla_profiler_custom_channel_registration() -> None:
 
     assert portal_eval.passed is False
     assert portal_eval.risk_level == "BREACHED"
+
+
+# ============================================================================
+# 4. Native Agentforce Runner & HTML Reporting Tests
+# ============================================================================
+
+def test_native_runner_dry_run_and_reporting() -> None:
+    """Test full multi-turn native scenario run and visual HTML export."""
+    from agent_chaos.salesforce.native.runner import (
+        NativeAgentforceRunner,
+        NativeScenarioStep,
+    )
+    from agent_chaos.salesforce.native.reporting import generate_native_html_report
+
+    runner = NativeAgentforceRunner()
+
+    steps = [
+        NativeScenarioStep(
+            user_query="Please log a case for damaged goods",
+            chaos_directive="chaos-dml@test.com",
+            expected_action_success=False,
+            expected_error_type="DML Exception",
+        ),
+        NativeScenarioStep(
+            user_query="Can you escalate it now?",
+            chaos_directive="[CHAOS_CPU_TIMEOUT]",
+            expected_action_success=False,
+            expected_error_type="Apex CPU timeout",
+        ),
+    ]
+
+    report = runner.run_scenario("Damaged Goods Escalation Flow", steps)
+
+    assert report.total_turns == 2
+    assert len(report.turns) == 2
+    # Turn 1 passed via safe degradation, Turn 2 breached Experience Cloud SLA (16.2s > 15s)
+    assert report.turns[0].passed is True
+    assert report.turns[1].passed is False
+    assert report.experience_cloud_compatible is False
+
+    with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as tmp_file:
+        html_path = generate_native_html_report(report, tmp_file.name)
+        assert Path(html_path).exists()
+        content = Path(html_path).read_text()
+        assert "Agentforce Native Reliability Report" in content
+        assert "Damaged Goods Escalation Flow" in content
+        assert "Experience Cloud" in content
+        assert "Turn #1" in content
+        assert "Turn #2" in content
+

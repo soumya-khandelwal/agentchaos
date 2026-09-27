@@ -23,6 +23,14 @@ from agent_chaos.salesforce.native.sla_profiler import (
     NativeSLAProfiler,
 )
 
+from agent_chaos.salesforce.native.runner import (
+    NativeAgentforceRunner,
+    NativeScenarioReport,
+    NativeScenarioStep,
+    NativeTestTurnResult,
+)
+from agent_chaos.salesforce.native.reporting import generate_native_html_report
+
 __all__ = [
     "export_apex_classes",
     "APEX_ENGINE_CLS",
@@ -40,4 +48,9 @@ __all__ = [
     "ChannelEvaluation",
     "MultiChannelSLAReport",
     "NativeSLAProfiler",
+    "NativeAgentforceRunner",
+    "NativeScenarioStep",
+    "NativeTestTurnResult",
+    "NativeScenarioReport",
+    "generate_native_html_report",
 ]
