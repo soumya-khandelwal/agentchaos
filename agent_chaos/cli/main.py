@@ -52,6 +52,10 @@ def info_command() -> None:
     console.print("  • Stdio duplex proxy with zero client code modification")
     console.print("  • Intercept tools/call with synthetic error or JSON-RPC error")
     console.print("  • Intermittent failure simulation (n_times) and latency delays")
+    console.print("\n[bold]Security & Red-Teaming Suite (v0.3):[/bold]")
+    console.print("  • Built-in adversarial payload bank (Indirect Injection, System Override, Exfiltration)")
+    console.print("  • Automated attack matrix runner (RedTeamSuite)")
+    console.print("  • HTML Visualizer & JUnit XML CI export for GitHub Actions")
 
 
 @cli.command("mcp")
@@ -143,6 +147,40 @@ def _build_fault(
     elif fault_type == "poisoned_payload":
         return Fault.poisoned(payload=message or "Injected prompt injection", times=times)
     return Fault.http_error(status_code=status_code, message=message or "Internal Server Error", times=times)
+
+
+@cli.command("redteam")
+@click.option("--list-payloads", is_flag=True, default=False, help="List all builtin security testing payloads.")
+@click.option(
+    "--category",
+    type=click.Choice(["indirect_injection", "data_exfiltration", "privilege_escalation", "system_override", "resource_exhaustion"]),
+    help="Filter payloads by category.",
+)
+def redteam_command(list_payloads: bool, category: Optional[str]) -> None:
+    """Run or inspect the AgentChaos Automated Red-Teaming & Security Suite."""
+    from rich.table import Table
+    from agent_chaos.security.payloads import AttackCategory, get_all_payloads, get_payloads_by_category
+
+    console.print(f"[bold red]🛡️ AgentChaos Security & Red-Teaming Suite[/bold red] v{__version__}\n")
+
+    if category:
+        cat_enum = AttackCategory(category)
+        payloads = get_payloads_by_category(cat_enum)
+    else:
+        payloads = get_all_payloads()
+
+    table = Table(title="Adversarial Tool Payload Bank", border_style="red")
+    table.add_column("ID", style="bold cyan", width=10)
+    table.add_column("Name", style="bold white", width=26)
+    table.add_column("Category", style="yellow", width=22)
+    table.add_column("Description", style="dim", width=40)
+
+    for p in payloads:
+        table.add_row(p.id, p.name, p.category.value, p.description)
+
+    console.print(table)
+    console.print(f"\n[bold green]✓ Loaded {len(payloads)} adversarial attack vectors.[/bold green]")
+    console.print("[dim]Use RedTeamSuite in your test suite to assert indirect prompt injection resistance.[/dim]")
 
 
 if __name__ == "__main__":

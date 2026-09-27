@@ -1,0 +1,40 @@
+name: AgentChaos Reliability & Security Suite
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  agent-reliability:
+    name: AI Agent Chaos & Blast-Radius Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install AgentChaos
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Agent Chaos Tests
+        run: |
+          pytest tests/ -v --junitxml=agent-chaos-junit.xml
+
+      - name: Upload Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-chaos-reports
+          path: |
+            agent-chaos-junit.xml
+            agent-chaos-report.html

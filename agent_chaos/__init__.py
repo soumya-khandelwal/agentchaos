@@ -25,7 +25,23 @@ from agent_chaos.mcp import (
     MCPInterceptorResult,
 )
 
-__version__ = "0.2.0"
+from agent_chaos.security import (
+    AttackCategory,
+    SecurityPayload,
+    get_all_payloads,
+    get_payload_by_id,
+    get_payloads_by_category,
+    AttackResult,
+    RedTeamReport,
+    RedTeamSuite,
+)
+
+from agent_chaos.reporting import (
+    generate_html_report,
+    export_junit_xml,
+)
+
+__version__ = "0.3.0"
 
 __all__ = [
     "Fault",
@@ -47,4 +63,14 @@ __all__ = [
     "MCPFaultInterceptor",
     "MCPFaultRule",
     "MCPInterceptorResult",
+    "AttackCategory",
+    "SecurityPayload",
+    "get_all_payloads",
+    "get_payload_by_id",
+    "get_payloads_by_category",
+    "AttackResult",
+    "RedTeamReport",
+    "RedTeamSuite",
+    "generate_html_report",
+    "export_junit_xml",
 ]

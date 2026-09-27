@@ -90,6 +90,17 @@ Universal Stdio Gateway for Model Context Protocol (MCP) clients:
 * Injects synthetic MCP tool errors (`isError: true`), protocol errors (`-32000`), simulated latency, intermittent failures (`times=1`), and prompt injection payloads.
 * Automatically records trajectory for contract assertions.
 
+### 6. `RedTeamSuite` (`agent_chaos.security`)
+Automated Indirect Prompt Injection & Tool Vulnerability Matrix:
+* Ships with a built-in adversarial payload bank (`BUILTIN_PAYLOADS`).
+* Tests System Directive Overrides, Financial Routing Hijacks, API Key Webhook Exfiltration, and Privilege Escalation.
+* Injects adversarial output into tool returns and asserts that the agent never calls forbidden tools or breaches guardrails.
+
+### 7. HTML Visualizer & JUnit Reporting (`agent_chaos.reporting`)
+Automated Audit & CI/CD Export:
+* `generate_html_report`: Produces a self-contained, responsive dashboard with tool trajectory timeline, duration metrics, and pass/fail badges.
+* `export_junit_xml`: Exports standard JUnit XML for GitHub Actions & GitLab CI native test reporting.
+
 ---
 
 [<- Previous: 01. Concepts](01-concepts.md) | [Next: 03. Code Walkthrough ->](03-code-walkthrough.md)

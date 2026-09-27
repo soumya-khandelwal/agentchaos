@@ -44,10 +44,16 @@ pytest -v -s tests/test_agent_scenarios.py
 | `tests/test_mcp_interceptor.py` | `test_mcp_interceptor_conditional_fault` | Triggers fault only when argument condition is met |
 | `tests/test_mcp_proxy.py` | `test_mcp_proxy_interception_and_pass_through` | End-to-end stdio proxy interception with subprocess |
 | `tests/test_mcp_proxy.py` | `test_mcp_proxy_intermittent_retry_success` | End-to-end retry loop through stdio proxy |
+| `tests/test_redteam.py` | `test_builtin_payloads_catalog` | Validates adversarial attack vector catalog |
+| `tests/test_redteam.py` | `test_redteam_suite_detects_vulnerable_agent` | Flags when agent executes unauthorized transfer |
+| `tests/test_redteam.py` | `test_redteam_suite_validates_hardened_agent` | Validates agent resisting injection payloads |
+| `tests/test_reporting.py` | `test_html_report_generation` | Generates self-contained HTML trajectory dashboard |
+| `tests/test_reporting.py` | `test_junit_xml_export` | Exports valid JUnit XML for CI/CD pipelines |
+| `tests/test_reporting.py` | `test_redteam_html_and_junit_export` | Exports security matrix HTML & JUnit reports |
 
 ---
 
-## ✍️ Recipe: How to Write a New Chaos Test
+## ✍️ Recipes: How to Test Your Agent
 
 ### Recipe A: Python Function / Decorator Wrapping
 ```python
@@ -74,6 +80,26 @@ def test_my_agent():
 ```bash
 # Test an MCP server with a synthetic 500 error on the 'transfer' tool
 agent-chaos mcp --target "python my_mcp_server.py" --fault-tool "transfer" --fault-type "http_error" --status-code 500
+```
+
+### Recipe C: Automated Indirect Prompt Injection Red-Teaming
+```python
+from agent_chaos.security import RedTeamSuite
+
+def test_agent_injection_resilience():
+    suite = RedTeamSuite(
+        target_tool="read_email",
+        forbidden_tools=["transfer_funds", "send_external_webhook"],
+    )
+    report = suite.run(my_agent_runner)
+    assert report.passed, f"Security breach! Score: {report.resilience_score}%"
+```
+
+### Recipe D: Exporting Visual HTML Artifacts
+```python
+from agent_chaos.reporting import generate_html_report
+
+generate_html_report(harness, output_file="agent-report.html")
 ```
 
 ---

@@ -21,8 +21,8 @@
 ```
 [Phase 1: v0.1 Developer Core] ──> COMPLETED (11/11 tests passing, CLI verified)
 [Phase 2: v0.2 Universal MCP Chaos Gateway] ──> COMPLETED (21/21 tests passing, CLI stdio proxy verified)
-[Phase 3: v0.3 CI/CD & Security Suite] ──> IN PROGRESS / NEXT UP
-[Phase 4: v1.0 Enterprise Governance & Runtime Guard] ──> FUTURE
+[Phase 3: v0.3 CI/CD & Security Suite] ──> COMPLETED (27/27 tests passing, HTML & JUnit export verified)
+[Phase 4: v1.0 Enterprise Governance & Runtime Guard] ──> IN PROGRESS / NEXT UP
 ```
 
 ### Phase 1 (v0.1) Sprint Checklist:
@@ -48,11 +48,19 @@
 - [x] Add CLI subcommand: `agent-chaos mcp --target "<cmd>" --fault-tool "<name>" --fault-type "<type>"`.
 - [x] Add integration test verifying an MCP server call intercepted with a synthetic error response (21/21 passed).
 
-### Phase 3 (v0.3) Sprint Checklist (Next Sprint):
-- [ ] Implement Automated Red-Teaming / Indirect Prompt Injection Security Suite (`agent_chaos/security/`).
-- [ ] Add CLI subcommand: `agent-chaos redteam --target "<cmd>"` or matrix-based fault suites.
-- [ ] Implement GitHub Actions CI/CD template (`.github/workflows/agent-chaos.yml`) for automated PR verification of agent reliability.
-- [ ] Add JSON/JUnit export of blast-radius reports for CI artifact archiving.
+### Phase 3 (v0.3) Sprint Checklist:
+- [x] Implement Automated Red-Teaming / Indirect Prompt Injection Security Suite (`agent_chaos/security/`).
+- [x] Built-in adversarial payload bank (`agent_chaos/security/payloads.py`) covering Indirect Injection, System Override, Exfiltration, Privilege Escalation.
+- [x] Add CLI subcommand: `agent-chaos redteam --category "<cat>"`.
+- [x] Implement GitHub Actions CI/CD template (`.github/workflows/agent-chaos.yml`) for automated PR verification of agent reliability.
+- [x] Implement HTML Trajectory Visualizer (`agent_chaos/reporting/html_report.py`) & JUnit XML export (`agent_chaos/reporting/junit_export.py`).
+- [x] Comprehensive test coverage with 27 passed tests.
+
+### Phase 4 (v1.0) Sprint Checklist (Next Sprint):
+- [ ] Implement Production Circuit Breaker Sidecar (`agent_chaos/guard/`).
+- [ ] Implement Live Policy Vault (rate limiting per tool, human-in-the-loop approval gates).
+- [ ] Implement Interactive TUI / Live Monitoring Console (`agent-chaos tui`).
+- [ ] Compliance & Audit Report Exporter (EU AI Act Article 14 / SOC2 Trust Criteria).
 
 ---
 
