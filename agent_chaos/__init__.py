@@ -55,6 +55,22 @@ from agent_chaos.guard import (
     RuntimeGuard,
 )
 
+from agent_chaos.salesforce import (
+    SalesforceChaosGateway,
+    SalesforceChaosServer,
+    HallucinationDetector,
+    HallucinationReport,
+    HallucinationType,
+    TimeoutProfiler,
+    TimeoutProfileReport,
+    LatencyTrial,
+    AgentforceClient,
+    AgentforceConfig,
+    AgentTurnResult,
+    get_template_spec,
+    PREBUILT_TEMPLATES,
+)
+
 from agent_chaos.tui import TerminalMonitor
 
 __version__ = "1.0.0"
@@ -101,4 +117,17 @@ __all__ = [
     "GuardDecision",
     "RuntimeGuard",
     "TerminalMonitor",
+    "SalesforceChaosGateway",
+    "SalesforceChaosServer",
+    "HallucinationDetector",
+    "HallucinationReport",
+    "HallucinationType",
+    "TimeoutProfiler",
+    "TimeoutProfileReport",
+    "LatencyTrial",
+    "AgentforceClient",
+    "AgentforceConfig",
+    "AgentTurnResult",
+    "get_template_spec",
+    "PREBUILT_TEMPLATES",
 ]

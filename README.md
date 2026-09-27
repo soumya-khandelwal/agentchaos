@@ -52,7 +52,21 @@ report = suite.run(run_agent)
 generate_html_report(report, "security-report.html")
 ```
 
-### 6. Interactive Terminal UI & Runtime Guard
+### 6. Salesforce Agentforce Chaos & Hallucination Audits
+```bash
+# 1. Export pre-built OpenAPI spec for External Services
+agent-chaos salesforce export-spec --template payment -o payment-spec.json
+
+# 2. Start HTTP Chaos Gateway for Named Credentials
+agent-chaos salesforce gateway --port 8080 --fault-path "/payments/refund" --fault-type timeout --delay 16.0
+
+# 3. Audit response for false-success hallucinations & fabricated tracking numbers
+agent-chaos salesforce check-hallucination \
+  --tool-status 504 \
+  --response "I have successfully processed your refund of $50!"
+```
+
+### 7. Interactive Terminal UI & Runtime Guard
 ```bash
 # Launch the interactive live tool traffic monitor and circuit breaker console
 agent-chaos tui
@@ -62,14 +76,15 @@ agent-chaos tui
 
 ## 📖 Bite-Sized Documentation Guide
 
-The documentation is split into 4 short, focused modules:
+The documentation is split into 5 focused modules:
 
 | # | Guide | What You'll Learn | Reading Time |
 | :---: | :--- | :--- | :--- |
 | **01** | [**Concepts & Failure Modes**](docs/01-concepts.md) | Why agents break, the 4 silent failure modes in production. | 2 mins |
 | **02** | [**Architecture & Design**](docs/02-architecture.md) | How the proxy interceptor, MCP gateway, and assertion engine work. | 3 mins |
 | **03** | [**Guided Code Walkthrough**](docs/03-code-walkthrough.md) | 5-file tour of the codebase + 4 hands-on terminal experiments. | 4 mins |
-| **04** | [**Testing Guide & Catalog**](docs/04-testing.md) | Command cheat sheet, catalog of all 33 tests, and how to write new tests. | 3 mins |
+| **04** | [**Testing Guide & Catalog**](docs/04-testing.md) | Command cheat sheet, catalog of all 49 tests, and how to write new tests. | 3 mins |
+| **05** | [**Salesforce Agentforce Guide**](docs/05-salesforce-agentforce.md) | Named Credentials gateway, Experience Cloud vs. Builder timeout cliff, and hallucination audits. | 4 mins |
 
 ---
 
@@ -79,3 +94,5 @@ The documentation is split into 4 short, focused modules:
 * [x] **v0.2 Universal MCP Gateway:** Stdio JSON-RPC duplex proxy for Cursor, Claude Desktop, and Model Context Protocol servers.
 * [x] **v0.3 CI/CD & Security:** Automated GitHub Actions, indirect prompt injection suites, HTML trajectory visualizer, JUnit export.
 * [x] **v1.0 Production Runtime Guard & TUI:** In-line circuit breakers, sliding-window rate limiters, HITL gates, and interactive terminal dashboard.
+* [x] **v1.1 Salesforce Agentforce Suite:** OpenAPI templates, Named Credential HTTP Chaos Gateway, Experience Cloud timeout profiler, false-success hallucination detector, and Einstein Agent driver.
+

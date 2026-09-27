@@ -19,7 +19,7 @@ pytest -v -s tests/test_agent_scenarios.py
 
 ---
 
-## 📋 Catalog of Existing Test Cases (v1.0 — 33 Tests)
+## 📋 Catalog of Existing Test Cases (v1.1 — 49 Tests)
 
 | File | Test Function | What Failure It Injects |
 | :--- | :--- | :--- |
@@ -56,6 +56,22 @@ pytest -v -s tests/test_agent_scenarios.py
 | `tests/test_guard.py` | `test_runtime_guard_sync_wrapper` | Sync tool protection against cascading failures |
 | `tests/test_guard.py` | `test_runtime_guard_async_wrapper` | Async tool rate limit enforcement |
 | `tests/test_guard.py` | `test_runtime_guard_hitl_protection` | Blocks unapproved destructive mutations |
+| `tests/test_salesforce.py` | `test_template_spec_retrieval_and_url_injection` | Validates OpenAPI 3.0 schema generation |
+| `tests/test_salesforce.py` | `test_gateway_default_mock_responses` | Simulates payment, order, customer default mocks |
+| `tests/test_salesforce.py` | `test_gateway_custom_mock_registration` | Custom handler for application-specific tools |
+| `tests/test_salesforce.py` | `test_gateway_fault_timeout` | Injects 504 Gateway Timeout into Named Credential |
+| `tests/test_salesforce.py` | `test_gateway_fault_http_error_and_html_page` | Returns 502 Bad Gateway with raw HTML payload |
+| `tests/test_salesforce.py` | `test_gateway_fault_rate_limit` | Injects 429 Too Many Requests with Retry-After header |
+| `tests/test_salesforce.py` | `test_gateway_fault_malformed_json` | Tests JSON parser resilience with corrupted payload |
+| `tests/test_salesforce.py` | `test_gateway_fault_removal_and_trajectory` | Trajectory recorder audit across clean and faulted calls |
+| `tests/test_salesforce.py` | `test_hallucination_false_success_detected` | Flags agent falsely claiming refund succeeded on 504 |
+| `tests/test_salesforce.py` | `test_hallucination_fabricated_entity_detected` | Flags agent inventing tracking numbers on 500 error |
+| `tests/test_salesforce.py` | `test_hallucination_safe_graceful_degradation` | Asserts agent admits error and escalates gracefully |
+| `tests/test_salesforce.py` | `test_hallucination_legitimate_tool_success` | Validates normal compliant agent response |
+| `tests/test_salesforce.py` | `test_timeout_profiler_detects_experience_cloud_cliff` | Pinpoints Experience Cloud client timeout cliff |
+| `tests/test_salesforce.py` | `test_timeout_profiler_all_passing` | Confirms all turns complete inside SLA budget |
+| `tests/test_salesforce.py` | `test_agentforce_client_session_and_message` | Multi-turn Einstein Agent session runner |
+| `tests/test_salesforce.py` | `test_agentforce_client_timeout_handling` | Graceful client driver timeout recovery |
 
 ---
 
@@ -120,6 +136,20 @@ guard.configure_rate_limit("payment_api", max_calls=5, window_seconds=60.0)
 guarded_payment = guard.wrap_tool("payment_api", real_payment_function)
 ```
 
+### Recipe F: Salesforce Agentforce Chaos & Hallucination Audits
+```bash
+# 1. Export OpenAPI spec for External Services
+agent-chaos salesforce export-spec --template payment --output payment-service.json
+
+# 2. Run Chaos Gateway for Named Credentials
+agent-chaos salesforce gateway --port 8080 --fault-path "/payments/refund" --fault-type timeout --delay 16.0
+
+# 3. Audit response for false-success hallucinations
+agent-chaos salesforce check-hallucination \
+  --tool-status 504 \
+  --response "I have successfully processed your refund of $50!"
+```
+
 ---
 
-[← Previous: 03. Code Walkthrough](03-code-walkthrough.md)
+[← Previous: 03. Code Walkthrough](03-code-walkthrough.md) | [Next: 05. Salesforce Agentforce Guide →](05-salesforce-agentforce.md)

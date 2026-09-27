@@ -23,6 +23,7 @@
 [Phase 2: v0.2 Universal MCP Chaos Gateway] ──> COMPLETED (21/21 tests passing, CLI stdio proxy verified)
 [Phase 3: v0.3 CI/CD & Security Suite] ──> COMPLETED (27/27 tests passing, HTML & JUnit export verified)
 [Phase 4: v1.0 Production Runtime Guard & TUI] ──> COMPLETED (33/33 tests passing, CircuitBreaker & TUI verified)
+[Phase 5: v1.1 Salesforce Agentforce Suite] ──> COMPLETED (49/49 tests passing, Gateway, Profiler, Hallucinations)
 ```
 
 ### Phase 1 (v0.1) Sprint Checklist:
@@ -64,6 +65,16 @@
 - [x] Implement Interactive Terminal UI Console (`agent-chaos tui` via `agent_chaos/tui/monitor.py`).
 - [x] User confirmed EU/SOC reports deferred for future enterprise compliance phase.
 - [x] Comprehensive test coverage (33/33 tests passing).
+
+### Phase 5 (v1.1) Salesforce Agentforce Sprint Checklist:
+- [x] Pre-built OpenAPI 3.0 specs (`agent_chaos/salesforce/templates.py`) for External Services (Payment, Order, Customer).
+- [x] HTTP Chaos Gateway (`agent_chaos/salesforce/gateway.py`) for Named Credentials callout interception.
+- [x] Experience Cloud vs. Agentforce Builder Timeout Budget Profiler (`agent_chaos/salesforce/timeout_profiler.py`).
+- [x] Hallucination Detection Engine (`agent_chaos/salesforce/hallucination.py`) for `FALSE_SUCCESS` and `FABRICATED_ENTITY`.
+- [x] Einstein Agent API Driver (`agent_chaos/salesforce/driver.py`) ready for live org testing.
+- [x] CLI commands (`agent-chaos salesforce export-spec`, `gateway`, `check-hallucination`).
+- [x] Comprehensive test suite `tests/test_salesforce.py` (49/49 tests passing).
+- [x] End-to-end setup guide in `docs/05-salesforce-agentforce.md`.
 
 ---
 

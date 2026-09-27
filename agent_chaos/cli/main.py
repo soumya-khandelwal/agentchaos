@@ -61,6 +61,11 @@ def info_command() -> None:
     console.print("  • Sliding-window rate limiters preventing runaway loop exhaustion")
     console.print("  • Human-in-the-Loop (HITL) authorization gates for sensitive actions")
     console.print("  • Real-time Terminal UI monitor (`agent-chaos tui`)")
+    console.print("\n[bold]Salesforce Agentforce Reliability Suite:[/bold]")
+    console.print("  • HTTP Chaos Gateway for External Services & Named Credentials")
+    console.print("  • False-Success & Fabricated Entity Hallucination Detector")
+    console.print("  • Experience Cloud vs. Agent Builder Timeout Profiler")
+    console.print("  • Pre-built OpenAPI 3.0 enterprise templates (`agent-chaos salesforce export-spec`)")
 
 
 @cli.command("mcp")
@@ -195,6 +200,128 @@ def tui_command(iterations: int) -> None:
     from agent_chaos.tui.monitor import TerminalMonitor
     monitor = TerminalMonitor()
     monitor.run_demo(iterations=iterations)
+
+
+@cli.group("salesforce")
+def salesforce_group() -> None:
+    """Salesforce Agentforce reliability testing, External Services gateway, and hallucination audits."""
+    pass
+
+
+@salesforce_group.command("export-spec")
+@click.option(
+    "--template",
+    "-t",
+    required=True,
+    type=click.Choice(["payment", "order", "customer"]),
+    help="Prebuilt enterprise template to export.",
+)
+@click.option("--output", "-o", default=None, help="Output path for OpenAPI JSON file (default: stdout).")
+@click.option("--base-url", default="http://localhost:8080", help="Base URL configured for the Named Credential.")
+def export_spec_command(template: str, output: Optional[str], base_url: str) -> None:
+    """Export an OpenAPI 3.0 specification ready for Salesforce External Services registration."""
+    import json
+    from agent_chaos.salesforce.templates import get_template_spec
+
+    spec = get_template_spec(template, base_url=base_url)
+    spec_json = json.dumps(spec, indent=2)
+
+    if output:
+        with open(output, "w", encoding="utf-8") as f:
+            f.write(spec_json)
+        console.print(f"[bold green]✓ Exported {template.capitalize()} OpenAPI 3.0 spec to:[/bold green] {output}")
+        console.print("[dim]Import this JSON into Salesforce Setup ➔ External Services ➔ Add an External Service.[/dim]")
+    else:
+        print(spec_json)
+
+
+@salesforce_group.command("gateway")
+@click.option("--port", "-p", default=8080, type=int, help="Port to listen on (default: 8080).")
+@click.option("--host", default="0.0.0.0", help="Host interface to bind to (default: 0.0.0.0).")
+@click.option("--fault-path", help="Endpoint path to intercept (e.g. '/payments/refund').")
+@click.option(
+    "--fault-type",
+    default="http_error",
+    type=click.Choice(["timeout", "http_error", "rate_limit", "malformed_data", "latency", "html_error"]),
+    help="Chaos fault to inject on the path.",
+)
+@click.option("--delay", default=0.0, type=float, help="Delay in seconds before responding.")
+@click.option("--status-code", default=500, type=int, help="HTTP status code to return.")
+@click.option("--message", default=None, help="Custom error message or HTML content.")
+def gateway_command(
+    port: int,
+    host: str,
+    fault_path: Optional[str],
+    fault_type: str,
+    delay: float,
+    status_code: int,
+    message: Optional[str],
+) -> None:
+    """Run the HTTP Chaos Gateway for Salesforce Named Credentials / External Services."""
+    import time
+    from agent_chaos.core.faults import Fault
+    from agent_chaos.salesforce.gateway import SalesforceChaosGateway
+
+    gateway = SalesforceChaosGateway(host=host, port=port)
+    gateway.start()
+
+    console.print(f"[bold cyan]⚡ Salesforce Agentforce Chaos Gateway active on[/bold cyan] [green]http://{host}:{port}[/green]")
+    console.print("[dim]Point your Salesforce Named Credential to this URL.[/dim]\n")
+
+    if fault_path:
+        if fault_type == "timeout":
+            fault = Fault.timeout(delay=delay if delay > 0 else 16.0, message=message or "Gateway Timeout")
+        elif fault_type == "rate_limit":
+            fault = Fault.rate_limit()
+        elif fault_type == "malformed_data":
+            fault = Fault.malformed(payload=message or "{invalid_json: true, trailing_garbage")
+        elif fault_type == "html_error":
+            fault = Fault.http_error(
+                status_code=502,
+                payload="<html><body><h1>502 Bad Gateway</h1><p>Cloudflare / NGINX origin failure</p></body></html>",
+            )
+        else:
+            fault = Fault.http_error(status_code=status_code, message=message or "Core system failure")
+
+        gateway.set_fault(fault_path, fault)
+        console.print(f"[bold red]💥 Fault Configured on '{fault_path}':[/bold red] {fault_type.upper()}")
+
+    console.print("[dim]Press Ctrl+C to terminate gateway.[/dim]")
+    try:
+        while True:
+            time.sleep(1.0)
+    except KeyboardInterrupt:
+        gateway.stop()
+        console.print("\n[yellow]Gateway stopped.[/yellow]")
+
+
+@salesforce_group.command("check-hallucination")
+@click.option("--response", "-r", required=True, help="Agentforce conversational response text.")
+@click.option("--tool-status", "-s", default=504, type=int, help="HTTP status code of the tool invocation.")
+@click.option("--original-query", "-q", default=None, help="Original customer prompt.")
+def check_hallucination_command(response: str, tool_status: int, original_query: Optional[str]) -> None:
+    """Evaluate an Agentforce response for false-success or fabricated-entity hallucinations."""
+    from agent_chaos.salesforce.hallucination import HallucinationDetector
+
+    detector = HallucinationDetector()
+    report = detector.evaluate(
+        agent_response=response,
+        tool_status_code=tool_status,
+        original_query=original_query,
+    )
+
+    console.print(f"[bold]Evaluating Agentforce Response (Tool Status: {tool_status}):[/bold]")
+    console.print(f"[dim]\"{response}\"[/dim]\n")
+
+    if report.hallucinated:
+        console.print("[bold red]❌ Hallucination Detected![/bold red]")
+        for f in report.findings:
+            console.print(f"  • {f}")
+    elif report.safe_degradation:
+        console.print("[bold green]✅ Safe Graceful Degradation[/bold green]")
+        console.print("  • Agent correctly acknowledged system disruption and did not claim false success.")
+    else:
+        console.print("[bold green]✅ No Hallucinations Detected[/bold green]")
 
 
 if __name__ == "__main__":
