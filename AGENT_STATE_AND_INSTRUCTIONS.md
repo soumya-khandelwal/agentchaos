@@ -22,7 +22,7 @@
 [Phase 1: v0.1 Developer Core] ──> COMPLETED (11/11 tests passing, CLI verified)
 [Phase 2: v0.2 Universal MCP Chaos Gateway] ──> COMPLETED (21/21 tests passing, CLI stdio proxy verified)
 [Phase 3: v0.3 CI/CD & Security Suite] ──> COMPLETED (27/27 tests passing, HTML & JUnit export verified)
-[Phase 4: v1.0 Enterprise Governance & Runtime Guard] ──> IN PROGRESS / NEXT UP
+[Phase 4: v1.0 Production Runtime Guard & TUI] ──> COMPLETED (33/33 tests passing, CircuitBreaker & TUI verified)
 ```
 
 ### Phase 1 (v0.1) Sprint Checklist:
@@ -56,11 +56,14 @@
 - [x] Implement HTML Trajectory Visualizer (`agent_chaos/reporting/html_report.py`) & JUnit XML export (`agent_chaos/reporting/junit_export.py`).
 - [x] Comprehensive test coverage with 27 passed tests.
 
-### Phase 4 (v1.0) Sprint Checklist (Next Sprint):
-- [ ] Implement Production Circuit Breaker Sidecar (`agent_chaos/guard/`).
-- [ ] Implement Live Policy Vault (rate limiting per tool, human-in-the-loop approval gates).
-- [ ] Implement Interactive TUI / Live Monitoring Console (`agent-chaos tui`).
-- [ ] Compliance & Audit Report Exporter (EU AI Act Article 14 / SOC2 Trust Criteria).
+### Phase 4 (v1.0) Sprint Checklist:
+- [x] Implement Production Circuit Breaker Engine (`agent_chaos/guard/circuit_breaker.py`) with CLOSED/OPEN/HALF_OPEN states.
+- [x] Implement Sliding-Window Rate Limiter (`agent_chaos/guard/rate_limiter.py`) preventing runaway loop exhaustion.
+- [x] Implement Human-in-the-Loop Approval Gate (`agent_chaos/guard/hitl.py`) for sensitive tool authorization.
+- [x] Implement Unified Runtime Guard (`agent_chaos/guard/runtime_guard.py`) with sync and async tool protection.
+- [x] Implement Interactive Terminal UI Console (`agent-chaos tui` via `agent_chaos/tui/monitor.py`).
+- [x] User confirmed EU/SOC reports deferred for future enterprise compliance phase.
+- [x] Comprehensive test coverage (33/33 tests passing).
 
 ---
 

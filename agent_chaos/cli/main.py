@@ -56,6 +56,11 @@ def info_command() -> None:
     console.print("  • Built-in adversarial payload bank (Indirect Injection, System Override, Exfiltration)")
     console.print("  • Automated attack matrix runner (RedTeamSuite)")
     console.print("  • HTML Visualizer & JUnit XML CI export for GitHub Actions")
+    console.print("\n[bold]Production Runtime Guard & Interactive TUI (v1.0):[/bold]")
+    console.print("  • Per-tool Circuit Breakers (CLOSED / OPEN / HALF_OPEN state machine)")
+    console.print("  • Sliding-window rate limiters preventing runaway loop exhaustion")
+    console.print("  • Human-in-the-Loop (HITL) authorization gates for sensitive actions")
+    console.print("  • Real-time Terminal UI monitor (`agent-chaos tui`)")
 
 
 @cli.command("mcp")
@@ -181,6 +186,15 @@ def redteam_command(list_payloads: bool, category: Optional[str]) -> None:
     console.print(table)
     console.print(f"\n[bold green]✓ Loaded {len(payloads)} adversarial attack vectors.[/bold green]")
     console.print("[dim]Use RedTeamSuite in your test suite to assert indirect prompt injection resistance.[/dim]")
+
+
+@cli.command("tui")
+@click.option("--iterations", default=15, type=int, help="Number of simulated live events to display.")
+def tui_command(iterations: int) -> None:
+    """Launch the interactive Terminal UI (TUI) for tool traffic and circuit breakers."""
+    from agent_chaos.tui.monitor import TerminalMonitor
+    monitor = TerminalMonitor()
+    monitor.run_demo(iterations=iterations)
 
 
 if __name__ == "__main__":

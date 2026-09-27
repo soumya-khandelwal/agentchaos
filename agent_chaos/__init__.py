@@ -41,7 +41,23 @@ from agent_chaos.reporting import (
     export_junit_xml,
 )
 
-__version__ = "0.3.0"
+from agent_chaos.guard import (
+    CircuitBreaker,
+    CircuitBreakerOpenError,
+    CircuitState,
+    SlidingWindowRateLimiter,
+    RateLimitExceededError,
+    HITLApprovalError,
+    HITLDecision,
+    HITLGate,
+    HITLPolicy,
+    GuardDecision,
+    RuntimeGuard,
+)
+
+from agent_chaos.tui import TerminalMonitor
+
+__version__ = "1.0.0"
 
 __all__ = [
     "Fault",
@@ -73,4 +89,16 @@ __all__ = [
     "RedTeamSuite",
     "generate_html_report",
     "export_junit_xml",
+    "CircuitBreaker",
+    "CircuitBreakerOpenError",
+    "CircuitState",
+    "SlidingWindowRateLimiter",
+    "RateLimitExceededError",
+    "HITLApprovalError",
+    "HITLDecision",
+    "HITLGate",
+    "HITLPolicy",
+    "GuardDecision",
+    "RuntimeGuard",
+    "TerminalMonitor",
 ]

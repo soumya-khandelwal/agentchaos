@@ -19,7 +19,7 @@ pytest -v -s tests/test_agent_scenarios.py
 
 ---
 
-## 📋 Catalog of Existing Test Cases (v0.2 — 21 Tests)
+## 📋 Catalog of Existing Test Cases (v1.0 — 33 Tests)
 
 | File | Test Function | What Failure It Injects |
 | :--- | :--- | :--- |
@@ -50,6 +50,12 @@ pytest -v -s tests/test_agent_scenarios.py
 | `tests/test_reporting.py` | `test_html_report_generation` | Generates self-contained HTML trajectory dashboard |
 | `tests/test_reporting.py` | `test_junit_xml_export` | Exports valid JUnit XML for CI/CD pipelines |
 | `tests/test_reporting.py` | `test_redteam_html_and_junit_export` | Exports security matrix HTML & JUnit reports |
+| `tests/test_guard.py` | `test_circuit_breaker_transitions` | Verifies CLOSED $\rightarrow$ OPEN $\rightarrow$ HALF_OPEN healing |
+| `tests/test_guard.py` | `test_sliding_window_rate_limiter` | Verifies runaway loop call suppression |
+| `tests/test_guard.py` | `test_hitl_approval_gate` | Asserts human approval checks on sensitive actions |
+| `tests/test_guard.py` | `test_runtime_guard_sync_wrapper` | Sync tool protection against cascading failures |
+| `tests/test_guard.py` | `test_runtime_guard_async_wrapper` | Async tool rate limit enforcement |
+| `tests/test_guard.py` | `test_runtime_guard_hitl_protection` | Blocks unapproved destructive mutations |
 
 ---
 
@@ -100,6 +106,18 @@ def test_agent_injection_resilience():
 from agent_chaos.reporting import generate_html_report
 
 generate_html_report(harness, output_file="agent-report.html")
+```
+
+### Recipe E: Live Circuit Breaker & Guardrail Protection
+```python
+from agent_chaos.guard import RuntimeGuard
+
+guard = RuntimeGuard()
+guard.configure_circuit_breaker("payment_api", failure_threshold=3, recovery_timeout=15.0)
+guard.configure_rate_limit("payment_api", max_calls=5, window_seconds=60.0)
+
+# In-line wrapper protecting tools from cascading failures and runaway loops
+guarded_payment = guard.wrap_tool("payment_api", real_payment_function)
 ```
 
 ---

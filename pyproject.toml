@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-chaos"
-version = "0.3.0"
+version = "1.0.0"
 description = "Fault injection and blast-radius testing framework for AI Agent tool calls."
 readme = "README.md"
 requires-python = ">=3.10"

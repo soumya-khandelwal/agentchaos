@@ -101,6 +101,13 @@ Automated Audit & CI/CD Export:
 * `generate_html_report`: Produces a self-contained, responsive dashboard with tool trajectory timeline, duration metrics, and pass/fail badges.
 * `export_junit_xml`: Exports standard JUnit XML for GitHub Actions & GitLab CI native test reporting.
 
+### 8. `RuntimeGuard` & Interactive TUI (`agent_chaos.guard`, `agent_chaos.tui`)
+Production Circuit Breaker & Live Traffic Console:
+* `CircuitBreaker`: State machine (`CLOSED`, `OPEN`, `HALF_OPEN`) preventing cascading agent failures.
+* `SlidingWindowRateLimiter`: Limits tool executions per rolling time window to eliminate runaway loops.
+* `HITLGate`: Enforces Human-in-the-Loop authorization gates for high-risk actions.
+* `TerminalMonitor`: Interactive live console (`agent-chaos tui`) streaming tool traffic, latency, and circuit states in real-time.
+
 ---
 
 [<- Previous: 01. Concepts](01-concepts.md) | [Next: 03. Code Walkthrough ->](03-code-walkthrough.md)
