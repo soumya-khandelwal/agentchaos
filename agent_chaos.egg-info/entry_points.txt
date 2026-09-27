@@ -1,0 +1,5 @@
+[console_scripts]
+agent-chaos = agent_chaos.cli.main:cli
+
+[pytest11]
+agent_chaos = agent_chaos.adapters.pytest_plugin

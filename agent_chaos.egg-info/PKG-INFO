@@ -1,0 +1,39 @@
+Metadata-Version: 2.4
+Name: agent-chaos
+Version: 0.1.0
+Summary: Fault injection and blast-radius testing framework for AI Agent tool calls.
+Author: AgentChaos Contributors
+License: Apache-2.0
+Keywords: ai,agents,chaos-engineering,testing,mcp,fault-injection
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: rich>=13.0.0
+Requires-Dist: click>=8.0.0
+Requires-Dist: httpx>=0.24.0
+Provides-Extra: test
+Requires-Dist: pytest>=7.0.0; extra == "test"
+
+# AgentChaos 🐒⚡
+
+> Open-Source Fault Injection & Blast-Radius Testing Framework for AI Agents.
+
+## Overview
+Traditional evaluation tools test whether an agent generates polite or accurate text on the "happy path."
+**AgentChaos** tests what happens when tools break, APIs time out, or external inputs attempt to poison the agent's execution.
+
+## Installation
+```bash
+pip install -e .
+```
+
+## Quick Start
+```python
+import pytest
+from agent_chaos import Fault, chaos_harness
+
+@chaos_harness(tool="process_refund", fault=Fault.timeout(delay=5.0))
+def test_agent_handles_timeout():
+    # Run your agent here
+    ...
+```

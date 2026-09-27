@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-chaos"
+version = "0.2.0"
+description = "Fault injection and blast-radius testing framework for AI Agent tool calls."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "AgentChaos Contributors"}
+]
+keywords = ["ai", "agents", "chaos-engineering", "testing", "mcp", "fault-injection"]
+dependencies = [
+    "pydantic>=2.0.0",
+    "rich>=13.0.0",
+    "click>=8.0.0",
+    "httpx>=0.24.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0"
+]
+
+[project.scripts]
+agent-chaos = "agent_chaos.cli.main:cli"
+
+[project.entry-points.pytest11]
+agent_chaos = "agent_chaos.adapters.pytest_plugin"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent_chaos*"]
