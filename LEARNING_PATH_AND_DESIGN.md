@@ -20,8 +20,13 @@ Welcome to AgentChaos. To make reading and learning painless, the documentation 
 
 4. [**04. Testing Guide & Test Catalog**](docs/04-testing.md)
    * CLI and pytest command cheat sheet
-   * Catalog indexing all 11 existing test scenarios
-   * Copy-paste template for writing new chaos tests
+   * Catalog indexing all 33 existing test scenarios
+   * Copy-paste recipes for Pytest, MCP, Security Red-Teaming, and RuntimeGuard
+
+5. [**🖥️ Team Adoption Slide Deck (Interactive)**](docs/adoption-slides.html) ([Markdown Companion](docs/ADOPTION_SLIDES.md))
+   * 15-slide deep-dive presentation for software engineers & agent developers
+   * Keyboard-navigable (`Left`/`Right` arrows), presenter notes (`N` key)
+   * Explains failure modes, Pytest quickstart, MCP stdio proxy, and 3 adoption on-ramps
 
 ---
 *For internal agent/session continuity instructions, see [`AGENT_STATE_AND_INSTRUCTIONS.md`](AGENT_STATE_AND_INSTRUCTIONS.md).*
