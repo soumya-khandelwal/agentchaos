@@ -68,6 +68,14 @@ PAGES = [
         "category": "Salesforce & Agentforce",
     },
     {
+        "id": "salesforce_native_guide",
+        "title": "07. Brand New Org Setup & Native Guide",
+        "icon": "🚀",
+        "src": DOCS_DIR / "07-salesforce-agentforce-native-guide.md",
+        "dest": DOCS_DIR / "07-salesforce-agentforce-native-guide.html",
+        "category": "Salesforce & Agentforce",
+    },
+    {
         "id": "testing_guide",
         "title": "Living Testing Catalog",
         "icon": "📋",
