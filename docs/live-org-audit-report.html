@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Agentforce Native Reliability Report: Case Escalation: DML Lock & Graceful Degradation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #161e31;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --success: #34d399;
+      --danger: #f87171;
+      --warning: #fbbf24;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2.5rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .title h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-pass { background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: var(--success); }
+    .badge-fail { background: rgba(248, 113, 113, 0.15); border: 1px solid rgba(248, 113, 113, 0.3); color: var(--danger); }
+    
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .stat-card .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .stat-card .value { font-size: 1.7rem; font-weight: 800; color: #fff; margin-top: 0.25rem; }
+
+    .diagnosis-box {
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+      color: #e0f2fe;
+    }
+
+    .section-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem; color: #fff; }
+    
+    .turn-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .turn-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .turn-prompt {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      border-left: 3px solid var(--accent);
+    }
+    .turn-response {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      border-left: 3px solid #818cf8;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.88rem; }
+    th, td { padding: 0.6rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        <h1>🐒⚡ AgentChaos: Native Agentforce Audit</h1>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Scenario: <strong>Case Escalation: DML Lock & Graceful Degradation</strong></p>
+      </div>
+      <div>
+        <div class="badge badge-pass">● ALL CHECKS PASSED</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="stat-card">
+        <div class="label">Total Evaluated Turns</div>
+        <div class="value">2</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Passed Reliability Checks</div>
+        <div class="value">2 / 2</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Experience Cloud SLA</div>
+        <div class="value" style="color: #34d399;">COMPLIANT (15s)</div>
+      </div>
+    </div>
+
+    <div class="diagnosis-box">
+      ✅ All 2 turns passed with zero hallucinations and full Experience Cloud SLA compliance.
+    </div>
+
+    <h2 class="section-title">Conversational Turns &amp; SLA Breakdown</h2>
+    
+            <div class="turn-card">
+              <div class="turn-header">
+                <strong>Turn #1</strong>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #34d399;">
+                  PASS (2.25s)
+                </span>
+              </div>
+              <div class="turn-prompt"><strong>User:</strong> I need to open a support case for a broken delivery. Email: customer@example.com, Subject: Damaged Parcel.</div>
+              <div class="turn-response"><strong>Agentforce:</strong> Your support case has been successfully created! Here are the details: Case Number: 00001027.</div>
+              
+              <table>
+                <thead>
+                  <tr><th>Channel</th><th>Budget</th><th>Actual Duration</th><th>SLA Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Experience Cloud (MIAW)</td><td>15.0s</td><td>2.25s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>Slack Bot Integration</td><td>25.0s</td><td>2.25s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>WhatsApp / SMS</td><td>20.0s</td><td>2.25s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>Agentforce Builder Debugger</td><td>45.0s</td><td>2.25s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            
+
+            <div class="turn-card">
+              <div class="turn-header">
+                <strong>Turn #2</strong>
+                <span style="font-size: 0.85rem; font-weight: 700; color: #34d399;">
+                  PASS (2.15s)
+                </span>
+              </div>
+              <div class="turn-prompt"><strong>User:</strong> I need to report another broken item. Email: chaos-dml@test.com, Subject: Crushed Box.</div>
+              <div class="turn-response"><strong>Agentforce:</strong> It seems there was an issue creating your support case due to a validation error. Could you double-check the details?</div>
+              
+              <table>
+                <thead>
+                  <tr><th>Channel</th><th>Budget</th><th>Actual Duration</th><th>SLA Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Experience Cloud (MIAW)</td><td>15.0s</td><td>2.15s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>Slack Bot Integration</td><td>25.0s</td><td>2.15s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>WhatsApp / SMS</td><td>20.0s</td><td>2.15s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr><tr><td>Agentforce Builder Debugger</td><td>45.0s</td><td>2.15s</td><td><span style="color: #34d399; font-weight: 700;">PASS</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            
+  </div>
+</body>
+</html>

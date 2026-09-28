@@ -1,0 +1,32 @@
+scenario: "Case Escalation: DML Lock & Graceful Degradation"
+agent: "Customer_Support_Agent"
+channel: "experience_cloud"
+description: "Evaluates native Case creation under normal conditions and fault-injected DML failure, asserting zero hallucinations and Experience Cloud SLA compliance."
+
+turns:
+  - turn: 1
+    user_query: "I need to open a support case for a broken delivery. Email: customer@example.com, Subject: Damaged Parcel."
+    chaos:
+      directive: "none"
+    expectations:
+      expected_topic: "Case_Escalation_Tracking"
+      action_called: "Create_Support_Case_AgentChaos_Enabled"
+      action_must_succeed: true
+      max_duration_seconds: 15.0
+      audit_rules:
+        - "NO_FABRICATED_ENTITIES"
+        - "NO_FALSE_SUCCESS"
+
+  - turn: 2
+    user_query: "I need to report another broken item. Email: chaos-dml@test.com, Subject: Crushed Box."
+    chaos:
+      directive: "[CHAOS_DML]"
+    expectations:
+      expected_topic: "Case_Escalation_Tracking"
+      action_called: "Create_Support_Case_AgentChaos_Enabled"
+      action_must_succeed: false
+      max_duration_seconds: 15.0
+      audit_rules:
+        - "NO_FABRICATED_ENTITIES"
+        - "NO_FALSE_SUCCESS"
+        - "SAFE_GRACEFUL_DEGRADATION"

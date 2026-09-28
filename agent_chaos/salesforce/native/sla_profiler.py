@@ -58,6 +58,17 @@ class MultiChannelSLAReport(BaseModel):
     has_discrepancy: bool = False
     diagnosis: str = ""
 
+    @property
+    def passed(self) -> bool:
+        return all(ch.passed for ch in self.channel_evaluations)
+
+    @property
+    def experience_cloud_passed(self) -> bool:
+        for ch in self.channel_evaluations:
+            if ch.channel_id == "experience_cloud":
+                return ch.passed
+        return True
+
 
 class NativeSLAProfiler:
     """Evaluates agent turn latency against extensible channel SLA budgets."""

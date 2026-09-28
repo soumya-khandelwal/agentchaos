@@ -14,26 +14,22 @@ APEX_ENGINE_CLS = '''/**
  */
 public with sharing class AgentChaosEngine {
 
-    public enum FaultType {
-        NONE,
-        DML_EXCEPTION,
-        CPU_TIMEOUT,
-        SOQL_LIMIT,
-        MUTATED_DATA,
-        CUSTOM_ERROR
-    }
-
-    public class ChaosDirective {
-        public FaultType fault = FaultType.NONE;
-        public Integer delayMs = 0;
-        public String errorMessage = 'AgentChaos synthetic fault injected';
-        public Boolean forceFailure = false;
-    }
+    public static final String FAULT_NONE = 'NONE';
+    public static final String FAULT_DML = 'DML_EXCEPTION';
+    public static final String FAULT_CPU_TIMEOUT = 'CPU_TIMEOUT';
+    public static final String FAULT_SOQL_LIMIT = 'SOQL_LIMIT';
+    public static final String FAULT_MUTATED_DATA = 'MUTATED_DATA';
 
     public class EvaluationResult {
-        public Boolean shouldInject = false;
-        public FaultType faultType = FaultType.NONE;
+        public Boolean shouldInject;
+        public String faultType;
         public String errorMessage;
+
+        public EvaluationResult() {
+            this.shouldInject = false;
+            this.faultType = FAULT_NONE;
+            this.errorMessage = '';
+        }
 
         public void applyDelayIfConfigured(Integer delayMs) {
             if (delayMs != null && delayMs > 0) {
@@ -156,7 +152,7 @@ public with sharing class CaseSupportChaosAction {
 
             AgentChaosEngine.EvaluationResult chaos = AgentChaosEngine.evaluate('createSupportCase', directive);
 
-            if (chaos.shouldInject && chaos.faultType != AgentChaosEngine.FaultType.NONE) {
+            if (chaos.shouldInject) {
                 res.isSuccess = false;
                 res.errorMessage = chaos.errorMessage;
                 results.add(res);

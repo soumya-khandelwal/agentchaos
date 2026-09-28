@@ -6,6 +6,7 @@ import sys
 import click
 import pytest
 from rich.console import Console
+from rich.panel import Panel
 from agent_chaos import __version__
 
 console = Console()
@@ -496,6 +497,42 @@ def test_native_command(
     if html_report:
         saved_path = generate_native_html_report(report, html_report)
         console.print(f"\n[bold green]✓ Visual HTML Audit Report generated at:[/bold green] [underline]file://{saved_path}[/underline]")
+
+
+@salesforce_group.command("run-suite")
+@click.argument("spec_path", type=click.Path(exists=True))
+@click.option("--live/--dry-run", default=False, help="Execute against live Salesforce org or run deterministic offline simulation.")
+@click.option("--target-org", "-o", default=None, help="Target Salesforce org alias or username.")
+@click.option("--html-report", default="docs/live-org-audit-report.html", help="Path to generate standalone visual HTML report.")
+def run_suite_command(
+    spec_path: str,
+    live: bool,
+    target_org: Optional[str],
+    html_report: Optional[str],
+) -> None:
+    """Run an automated multi-turn Agentforce chaos scenario from a YAML spec file."""
+    from agent_chaos.salesforce.native.suite_parser import ScenarioSpec
+    from agent_chaos.salesforce.native.suite_runner import NativeSuiteRunner
+
+    spec = ScenarioSpec.from_yaml_file(spec_path)
+    runner = NativeSuiteRunner()
+    report = runner.run_spec(spec, live=live, target_org=target_org, output_html=html_report)
+
+    for turn in report.turns:
+        status_color = "green" if turn.passed else "red"
+        status_text = "PASS" if turn.passed else "FAIL"
+        console.print(Panel(
+            f"[bold white]User Query:[/bold white] {turn.user_query}\n\n"
+            f"[bold white]Agent Response:[/bold white]\n[cyan]{turn.agent_response}[/cyan]\n\n"
+            f"[bold]Turn Latency:[/bold] {turn.duration_seconds:.2f}s | "
+            f"[bold]Audit Verdict:[/bold] [{'green' if turn.passed else 'red'}]{status_text}[/{'green' if turn.passed else 'red'}]",
+            title=f"Turn #{turn.step_index}: {status_text}",
+            border_style=status_color,
+        ))
+
+    console.print(f"\n[bold]{report.overall_diagnosis}[/bold]")
+    if not report.all_passed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

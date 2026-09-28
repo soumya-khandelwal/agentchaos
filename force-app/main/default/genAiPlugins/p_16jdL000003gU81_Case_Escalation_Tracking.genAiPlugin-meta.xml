@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>This topic applies when customers inquire about the status of cases, want to add updates to an existing case, or need to create and escalate a new support case.</description>
+    <developerName>p_16jdL000003gU81_Case_Escalation_Tracking</developerName>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__GetCaseByCaseNumber</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__AddCaseComment</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>Create_Support_Case_Chaos</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the customer provides a case number, use SvcCopilotTmpl__GetCaseByCaseNumber to retrieve the case details.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the customer wants to add a comment to an existing case, use SvcCopilotTmpl__AddCaseComment.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>1</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the customer wants to create a support case, report an issue, or escalate a delivery complaint, use Create_Support_Case_Chaos to create a support case.</description>
+        <developerName>instruction_2</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_2</masterLabel>
+        <sortOrder>2</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jdL000003gU81_Case_Escalation_Tracking</localDeveloperName>
+    <masterLabel>Case Escalation Tracking</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to track, manage, and create escalated customer support cases. You can create cases, retrieve case details, and add comments.</scope>
+</GenAiPlugin>

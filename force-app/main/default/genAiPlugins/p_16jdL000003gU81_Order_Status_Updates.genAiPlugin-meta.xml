@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>This topic is selected when customers inquire about the current status of their orders, including tracking updates and expected delivery timelines.</description>
+    <developerName>p_16jdL000003gU81_Order_Status_Updates</developerName>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__GetOrderByOrderNumber</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__GetOrdersByContact</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the query is about the status of an order, use SvcCopilotTmpl__GetOrderByOrderNumber.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the customer provides their contact ID, use SvcCopilotTmpl__GetOrdersByContact to retrieve all associated orders.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jdL000003gU81_Order_Status_Updates</localDeveloperName>
+    <masterLabel>Order Status Updates</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to only provide real-time updates on the status of orders. You cannot modify or cancel orders.</scope>
+</GenAiPlugin>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <description>This topic is chosen when customers report issues with their deliveries, such as delays, incorrect addresses, or lost packages.</description>
+    <developerName>p_16jdL000003gU81_Delivery_Issue_Resolution</developerName>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__GetDeliveryTimeSlots</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>SvcCopilotTmpl__FinalizeNewDeliveryTime</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>Create_Support_Case_Chaos</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>If the customer wants to reschedule delivery, use SvcCopilotTmpl__GetDeliveryTimeSlots.</description>
+        <developerName>instruction_0</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_0</masterLabel>
+        <sortOrder>0</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the customer confirms a new delivery time, use SvcCopilotTmpl__FinalizeNewDeliveryTime.</description>
+        <developerName>instruction_1</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_1</masterLabel>
+        <sortOrder>1</sortOrder>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>If the customer reports a damaged, lost, or delayed package and wants to open a case or escalate, use Create_Support_Case_Chaos to create the case.</description>
+        <developerName>instruction_2</developerName>
+        <language xsi:nil="true"/>
+        <masterLabel>instruction_2</masterLabel>
+        <sortOrder>2</sortOrder>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <localDeveloperName>p_16jdL000003gU81_Delivery_Issue_Resolution</localDeveloperName>
+    <masterLabel>Delivery Issue Resolution</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Your job is to assist with resolving delivery-related problems, including creating support cases for damaged or lost goods and scheduling delivery times.</scope>
+</GenAiPlugin>

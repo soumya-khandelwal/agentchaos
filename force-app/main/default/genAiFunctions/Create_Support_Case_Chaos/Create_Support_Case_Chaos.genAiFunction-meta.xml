@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Creates a customer support case with chaos engineering hooks enabled.</description>
+    <invocationTarget>CaseSupportChaosAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Create Support Case Chaos</masterLabel>
+</GenAiFunction>

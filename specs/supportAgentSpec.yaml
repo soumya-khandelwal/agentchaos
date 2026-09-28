@@ -1,0 +1,19 @@
+agentType: customer
+companyName: Acme Logistics
+companyDescription: Global package delivery, shipping, and supply chain logistics
+role: Customer Support Specialist handling order issues, delivery complaints,
+  and Case escalations
+maxNumOfTopics: 5
+enrichLogs: false
+tone: casual
+topics:
+  - name: Order Status Updates
+    description: Provide real time updates on order statuses.
+  - name: Delivery Issue Resolution
+    description: Assist customers with resolving delivery problems.
+  - name: Case Escalation Tracking
+    description: Monitor and manage escalated customer cases.
+  - name: Shipping Cost Inquiries
+    description: Answer questions about shipping rates and fees.
+  - name: Package Location Assistance
+    description: Help locate packages during transit.
