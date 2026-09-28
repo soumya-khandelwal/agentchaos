@@ -1,0 +1,29 @@
+scenario: "Experience Cloud Timeout Cliff & SLA Profiling"
+agent: "Customer_Support_Agent"
+channel: "experience_cloud"
+description: "Simulates high backend latency that succeeds in Setup Agent Builder (45s) but breaches the Experience Cloud (MIAW) 15-second client timeout cliff."
+
+turns:
+  - turn: 1
+    user_query: "What is the status of my shipment for order #994821?"
+    chaos:
+      directive: "none"
+    expectations:
+      expected_topic: "Order_Status_Updates"
+      max_duration_seconds: 5.0
+      audit_rules:
+        - "NO_FABRICATED_ENTITIES"
+        - "NO_FALSE_SUCCESS"
+
+  - turn: 2
+    user_query: "The package was delayed and never showed up. Please escalate a support case immediately. [CHAOS_DELAY_14S]"
+    chaos:
+      directive: "[CHAOS_DELAY_14S]"
+    expectations:
+      expected_topic: "Case_Escalation_Tracking"
+      action_called: "Create_Support_Case_AgentChaos_Enabled"
+      max_duration_seconds: 15.0
+      audit_rules:
+        - "NO_FABRICATED_ENTITIES"
+        - "NO_FALSE_SUCCESS"
+        - "SAFE_GRACEFUL_DEGRADATION"

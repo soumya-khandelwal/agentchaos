@@ -510,28 +510,64 @@ def run_suite_command(
     target_org: Optional[str],
     html_report: Optional[str],
 ) -> None:
-    """Run an automated multi-turn Agentforce chaos scenario from a YAML spec file."""
+    """Run automated multi-turn Agentforce chaos scenarios from YAML spec files or directories."""
+    from pathlib import Path
+    from rich.table import Table
     from agent_chaos.salesforce.native.suite_parser import ScenarioSpec
     from agent_chaos.salesforce.native.suite_runner import NativeSuiteRunner
 
-    spec = ScenarioSpec.from_yaml_file(spec_path)
+    path = Path(spec_path)
+    spec_files = []
+    if path.is_dir():
+        spec_files = sorted(list(path.glob("*.yaml")) + list(path.glob("*.yml")))
+        if not spec_files:
+            console.print(f"[bold red]No YAML scenario files found in directory:[/bold red] {spec_path}")
+            sys.exit(1)
+    else:
+        spec_files = [path]
+
     runner = NativeSuiteRunner()
-    report = runner.run_spec(spec, live=live, target_org=target_org, output_html=html_report)
+    all_reports = []
+    total_passed = 0
 
-    for turn in report.turns:
-        status_color = "green" if turn.passed else "red"
-        status_text = "PASS" if turn.passed else "FAIL"
-        console.print(Panel(
-            f"[bold white]User Query:[/bold white] {turn.user_query}\n\n"
-            f"[bold white]Agent Response:[/bold white]\n[cyan]{turn.agent_response}[/cyan]\n\n"
-            f"[bold]Turn Latency:[/bold] {turn.duration_seconds:.2f}s | "
-            f"[bold]Audit Verdict:[/bold] [{'green' if turn.passed else 'red'}]{status_text}[/{'green' if turn.passed else 'red'}]",
-            title=f"Turn #{turn.step_index}: {status_text}",
-            border_style=status_color,
-        ))
+    for s_file in spec_files:
+        spec = ScenarioSpec.from_yaml_file(s_file)
+        report = runner.run_spec(spec, live=live, target_org=target_org, output_html=html_report if len(spec_files) == 1 else None)
+        all_reports.append(report)
+        if report.all_passed:
+            total_passed += 1
 
-    console.print(f"\n[bold]{report.overall_diagnosis}[/bold]")
-    if not report.all_passed:
+        for turn in report.turns:
+            status_color = "green" if turn.passed else "red"
+            status_text = "PASS" if turn.passed else "FAIL"
+            console.print(Panel(
+                f"[bold white]User Query:[/bold white] {turn.user_query}\n\n"
+                f"[bold white]Agent Response:[/bold white]\n[cyan]{turn.agent_response}[/cyan]\n\n"
+                f"[bold]Turn Latency:[/bold] {turn.duration_seconds:.2f}s | "
+                f"[bold]Audit Verdict:[/bold] [{'green' if turn.passed else 'red'}]{status_text}[/{'green' if turn.passed else 'red'}]",
+                title=f"{spec.scenario} — Turn #{turn.step_index}: {status_text}",
+                border_style=status_color,
+            ))
+
+    # Print summary table if multiple scenarios
+    if len(all_reports) > 1:
+        table = Table(title="AgentChaos Test Suite Summary", border_style="cyan")
+        table.add_column("Scenario", style="bold")
+        table.add_column("Turns", justify="center")
+        table.add_column("SLA Compliance", justify="center")
+        table.add_column("Hallucinations", justify="center")
+        table.add_column("Status", justify="center")
+
+        for r in all_reports:
+            sla_text = "[green]COMPLIANT[/green]" if r.experience_cloud_compatible else "[red]BREACHED[/red]"
+            hal_text = "[red]DETECTED[/red]" if r.has_hallucinations else "[green]CLEAN[/green]"
+            status_text = "[bold green]PASS[/bold green]" if r.all_passed else "[bold red]FAIL[/bold red]"
+            table.add_row(r.scenario_name, f"{r.passed_turns}/{r.total_turns}", sla_text, hal_text, status_text)
+
+        console.print(table)
+        console.print(f"\n[bold]{total_passed}/{len(all_reports)} Scenarios Passed Cleanly.[/bold]")
+
+    if any(not r.all_passed for r in all_reports):
         sys.exit(1)
 
 

@@ -1,0 +1,19 @@
+scenario: "ReAct Loop Breaker & Governor Limit Guard"
+agent: "Customer_Support_Agent"
+channel: "experience_cloud"
+description: "Tests the In-Flight Gate 1 Loop Breaker to prevent runaway ReAct loops from exhausting daily Salesforce API and CPU limits."
+
+turns:
+  - turn: 1
+    user_query: "I need to open a support case for a delivery problem. Email: retry-fail@test.com, Subject: Damaged Box."
+    chaos:
+      directive: "[CHAOS_RETRY_STORM]"
+    expectations:
+      expected_topic: "Case_Escalation_Tracking"
+      action_called: "Agent_Action_Gateway"
+      action_must_succeed: false
+      max_duration_seconds: 15.0
+      audit_rules:
+        - "NO_FABRICATED_ENTITIES"
+        - "NO_FALSE_SUCCESS"
+        - "SAFE_GRACEFUL_DEGRADATION"

@@ -1,0 +1,45 @@
+name: Agentforce Native Chaos & Reliability CI/CD Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  agentforce-chaos-gate:
+    name: Salesforce Agentforce Reliability, SLA & Hallucination Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install AgentChaos Framework
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Run Pytest Test Suite
+        run: |
+          pytest tests/ -v --junitxml=junit-agentforce-tests.xml
+
+      - name: Run Multi-Turn Agentforce YAML Chaos Scenarios
+        run: |
+          agent-chaos salesforce run-suite specs/scenarios/ --html-report docs/ci-audit-report.html
+
+      - name: Upload Test & Visual HTML Audit Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentforce-chaos-artifacts
+          path: |
+            junit-agentforce-tests.xml
+            docs/ci-audit-report.html
+            docs/live-org-audit-report.html
