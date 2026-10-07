@@ -496,6 +496,32 @@
 <li><code>HITLGate</code>: Enforces Human-in-the-Loop authorization gates for high-risk actions.</li>
 <li><code>TerminalMonitor</code>: Interactive live console (<code>agent-chaos tui</code>) streaming tool traffic, latency, and circuit states in real-time.</li>
 </ul>
+<h3>9. Universal Audit Event Engine (<code>agent_chaos.core.audit</code>)</h3>
+<p>Protocol-Agnostic Audit Contract:</p>
+<ul>
+<li><code>UniversalAuditEvent</code>: Standardized event interchange model for Salesforce Apex, Claude MCP, REST webhooks, and Python agent calls.</li>
+<li><code>UniversalEvaluator</code>: Decoupled engine running <code>UniversalFalseSuccessRule</code>, <code>UniversalEntityFabricationRule</code>, and <code>UniversalSLARule</code> across multi-turn sessions.</li>
+</ul>
+<h3>10. Automated Tool Schema Fuzzer (<code>agent_chaos.fuzzing</code>)</h3>
+<p>Autonomous Chaos Monkey for Agent Tools:</p>
+<ul>
+<li><code>ToolSchemaFuzzer</code>: Automatically mutates tool schemas (JSON Schema / OpenAPI) without manual rule writing.</li>
+<li>Mutation strategies: <code>MissingFieldsStrategy</code>, <code>TypeInversionStrategy</code>, <code>BoundaryValuesStrategy</code> (token bombs, nulls, negative numbers).</li>
+<li>Measures resilience scores and catches unhandled agent crashes.</li>
+</ul>
+<h3>11. Multi-Agent Handoff Chaos Suite (<code>agent_chaos.multiagent</code>)</h3>
+<p>Cascading Failure and Delegation Interceptor:</p>
+<ul>
+<li><code>MultiAgentChaosHarness</code>: Intercepts agent-to-agent delegation hops.</li>
+<li>Injects <code>DROPPED_CONTEXT</code>, <code>STALE_STATE</code>, <code>ROUTING_TIMEOUT</code>, and <code>POISONED_HANDOFF</code>.</li>
+<li>Deterministic assertions: <code>assert_max_handoff_hops</code>, <code>assert_handoff_fallback</code>, <code>assert_context_keys_preserved</code>.</li>
+</ul>
+<h3>12. Declarative In-Org Apex Metadata Engine (<code>force-app/</code>)</h3>
+<p>No-Code Fault Injection for Salesforce Admins:</p>
+<ul>
+<li><code>Agent_Chaos_Rule__mdt</code>: Custom Metadata Type enabling admins to toggle chaos rules on/off in sandboxes without code edits.</li>
+<li><code>AgentGatePolicy.cls</code>: Evaluates active Custom Metadata records dynamically before executing business logic.</li>
+</ul>
 <hr />
 <p><a href="01-concepts.html">&lt;- Previous: 01. Concepts</a> | <a href="03-code-walkthrough.html">Next: 03. Code Walkthrough -&gt;</a></p>
 

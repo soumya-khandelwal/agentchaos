@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Fault_Type__c</fullName>
+    <description>Type of fault: DML_EXCEPTION, CPU_TIMEOUT, 504_GATEWAY_TIMEOUT, 429_RATE_LIMIT, MUTATED_DATA</description>
+    <externalId>false</externalId>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <label>Fault Type</label>
+    <length>50</length>
+    <required>true</required>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

@@ -16,7 +16,37 @@ from agent_chaos.core import (
     assert_parameters_match,
     assert_max_retries,
     assert_sequence,
+    UniversalAuditEvent,
+    UniversalAuditReport,
+    UniversalEvaluator,
+    UniversalRuleViolation,
+    UniversalViolationSeverity,
+    ProtocolType,
+    BaseUniversalRule,
+    UniversalFalseSuccessRule,
+    UniversalEntityFabricationRule,
+    UniversalSLARule,
 )
+
+from agent_chaos.fuzzing import (
+    ToolSchemaFuzzer,
+    FuzzCampaignReport,
+    FuzzTestResult,
+    FuzzedPayload,
+    MutationType,
+)
+
+from agent_chaos.multiagent import (
+    MultiAgentChaosHarness,
+    HandoffFault,
+    HandoffFaultType,
+    HandoffEvent,
+    assert_max_handoff_hops,
+    assert_handoff_called,
+    assert_handoff_fallback,
+    assert_context_keys_preserved,
+)
+
 
 from agent_chaos.mcp import (
     MCPChaosProxy,
@@ -130,4 +160,28 @@ __all__ = [
     "AgentTurnResult",
     "get_template_spec",
     "PREBUILT_TEMPLATES",
+    "UniversalAuditEvent",
+    "UniversalAuditReport",
+    "UniversalEvaluator",
+    "UniversalRuleViolation",
+    "UniversalViolationSeverity",
+    "ProtocolType",
+    "BaseUniversalRule",
+    "UniversalFalseSuccessRule",
+    "UniversalEntityFabricationRule",
+    "UniversalSLARule",
+    "ToolSchemaFuzzer",
+    "FuzzCampaignReport",
+    "FuzzTestResult",
+    "FuzzedPayload",
+    "MutationType",
+    "MultiAgentChaosHarness",
+    "HandoffFault",
+    "HandoffFaultType",
+    "HandoffEvent",
+    "assert_max_handoff_hops",
+    "assert_handoff_called",
+    "assert_handoff_fallback",
+    "assert_context_keys_preserved",
 ]
+

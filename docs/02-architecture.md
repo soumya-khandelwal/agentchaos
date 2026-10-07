@@ -108,6 +108,29 @@ Production Circuit Breaker & Live Traffic Console:
 * `HITLGate`: Enforces Human-in-the-Loop authorization gates for high-risk actions.
 * `TerminalMonitor`: Interactive live console (`agent-chaos tui`) streaming tool traffic, latency, and circuit states in real-time.
 
+### 9. Universal Audit Event Engine (`agent_chaos.core.audit`)
+Protocol-Agnostic Audit Contract:
+* `UniversalAuditEvent`: Standardized event interchange model for Salesforce Apex, Claude MCP, REST webhooks, and Python agent calls.
+* `UniversalEvaluator`: Decoupled engine running `UniversalFalseSuccessRule`, `UniversalEntityFabricationRule`, and `UniversalSLARule` across multi-turn sessions.
+
+### 10. Automated Tool Schema Fuzzer (`agent_chaos.fuzzing`)
+Autonomous Chaos Monkey for Agent Tools:
+* `ToolSchemaFuzzer`: Automatically mutates tool schemas (JSON Schema / OpenAPI) without manual rule writing.
+* Mutation strategies: `MissingFieldsStrategy`, `TypeInversionStrategy`, `BoundaryValuesStrategy` (token bombs, nulls, negative numbers).
+* Measures resilience scores and catches unhandled agent crashes.
+
+### 11. Multi-Agent Handoff Chaos Suite (`agent_chaos.multiagent`)
+Cascading Failure and Delegation Interceptor:
+* `MultiAgentChaosHarness`: Intercepts agent-to-agent delegation hops.
+* Injects `DROPPED_CONTEXT`, `STALE_STATE`, `ROUTING_TIMEOUT`, and `POISONED_HANDOFF`.
+* Deterministic assertions: `assert_max_handoff_hops`, `assert_handoff_fallback`, `assert_context_keys_preserved`.
+
+### 12. Declarative In-Org Apex Metadata Engine (`force-app/`)
+No-Code Fault Injection for Salesforce Admins:
+* `Agent_Chaos_Rule__mdt`: Custom Metadata Type enabling admins to toggle chaos rules on/off in sandboxes without code edits.
+* `AgentGatePolicy.cls`: Evaluates active Custom Metadata records dynamically before executing business logic.
+
 ---
 
 [<- Previous: 01. Concepts](01-concepts.md) | [Next: 03. Code Walkthrough ->](03-code-walkthrough.md)
+

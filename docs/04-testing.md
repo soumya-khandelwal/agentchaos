@@ -19,7 +19,7 @@ pytest -v -s tests/test_agent_scenarios.py
 
 ---
 
-## 📋 Catalog of Existing Test Cases (v1.1 — 49 Tests)
+## 📋 Catalog of Existing Test Cases (v1.2 — 79 Tests)
 
 | File | Test Function | What Failure It Injects |
 | :--- | :--- | :--- |
@@ -72,8 +72,34 @@ pytest -v -s tests/test_agent_scenarios.py
 | `tests/test_salesforce.py` | `test_timeout_profiler_all_passing` | Confirms all turns complete inside SLA budget |
 | `tests/test_salesforce.py` | `test_agentforce_client_session_and_message` | Multi-turn Einstein Agent session runner |
 | `tests/test_salesforce.py` | `test_agentforce_client_timeout_handling` | Graceful client driver timeout recovery |
+| `tests/test_salesforce_native.py` | `test_export_apex_classes` | Verifies export of extensible native Apex classes |
+| `tests/test_salesforce_native.py` | `test_auditor_detects_false_success_claim` | Detects false success claims in native Agentforce actions |
+| `tests/test_salesforce_native.py` | `test_auditor_detects_fabricated_salesforce_case_number` | Detects fabricated Case IDs not written to DB |
+| `tests/test_salesforce_native.py` | `test_sla_profiler_experience_cloud_discrepancy` | Multi-channel SLA profiler detecting 15s cliff |
+| `tests/test_salesforce_native.py` | `test_native_runner_dry_run_and_reporting` | End-to-end native Agentforce scenario runner |
+| `tests/test_suite_runner.py` | `test_parse_scenario_spec_from_yaml` | Parses YAML scenario specifications |
+| `tests/test_suite_runner.py` | `test_suite_runner_simulated_execution` | Executes multi-turn scenario across test gates |
+| `tests/test_suite_runner.py` | `test_suite_runner_detects_hallucination_in_bad_agent` | Flags hallucinations in multi-turn YAML suite |
+| `tests/test_universal_audit.py` | `test_universal_audit_event_serialization` | Verifies JSON import/export of universal audit contract |
+| `tests/test_universal_audit.py` | `test_evaluator_detects_false_success_hallucination` | Decoupled evaluator flags false success on failed tool |
+| `tests/test_universal_audit.py` | `test_evaluator_passes_honest_degradation` | Decoupled evaluator confirms graceful degradation |
+| `tests/test_universal_audit.py` | `test_evaluator_detects_fabricated_entities` | Flags entity hallucination across verified DB state |
+| `tests/test_universal_audit.py` | `test_evaluator_allows_verified_entities` | Validates legitimate entity present in database |
+| `tests/test_universal_audit.py` | `test_evaluator_detects_channel_sla_breach` | Flags turn duration exceeding channel SLA budget |
+| `tests/test_universal_audit.py` | `test_evaluator_multi_turn_session_evaluation` | Multi-turn session evaluation report aggregation |
+| `tests/test_schema_fuzzer.py` | `test_missing_fields_strategy` | Strips required and optional fields from schema |
+| `tests/test_schema_fuzzer.py` | `test_type_inversion_strategy` | Inverts numbers, booleans, and nested structures |
+| `tests/test_schema_fuzzer.py` | `test_boundary_values_strategy` | Injects boundary numbers, nulls, and token bombs |
+| `tests/test_schema_fuzzer.py` | `test_tool_schema_fuzzer_campaign_resilient_agent` | Validates hardened agent handling fuzzed payloads |
+| `tests/test_schema_fuzzer.py` | `test_tool_schema_fuzzer_campaign_detects_brittle_agent` | Catches unhandled crashes in brittle agents |
+| `tests/test_multiagent.py` | `test_clean_multiagent_handoff` | Verifies clean delegation and context preservation |
+| `tests/test_multiagent.py` | `test_dropped_context_injection` | Strips metadata and asserts context corruption failure |
+| `tests/test_multiagent.py` | `test_stale_state_injection` | Injects stale memory snapshot during delegation |
+| `tests/test_multiagent.py` | `test_routing_timeout_and_fallback_assertion` | Asserts supervisor routes to fallback on child timeout |
+| `tests/test_multiagent.py` | `test_max_handoff_hops_loop_detection` | Catches runaway ping-pong loops between sub-agents |
 
 ---
+
 
 ## ✍️ Recipes: How to Test Your Agent
 

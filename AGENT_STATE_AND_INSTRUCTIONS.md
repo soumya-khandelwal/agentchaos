@@ -24,6 +24,7 @@
 [Phase 3: v0.3 CI/CD & Security Suite] ──> COMPLETED (27/27 tests passing, HTML & JUnit export verified)
 [Phase 4: v1.0 Production Runtime Guard & TUI] ──> COMPLETED (33/33 tests passing, CircuitBreaker & TUI verified)
 [Phase 5: v1.1 Salesforce Agentforce Suite] ──> COMPLETED (49/49 tests passing, Gateway, Profiler, Hallucinations)
+[Phase 6: v1.2 Universal Audit & Multi-Agent Fuzzer] ──> COMPLETED (79/79 tests passing, Universal Audit, Schema Fuzzer, Multi-Agent)
 ```
 
 ### Phase 1 (v0.1) Sprint Checklist:
@@ -75,6 +76,14 @@
 - [x] CLI commands (`agent-chaos salesforce export-spec`, `gateway`, `check-hallucination`).
 - [x] Comprehensive test suite `tests/test_salesforce.py` (49/49 tests passing).
 - [x] End-to-end setup guide in `docs/05-salesforce-agentforce.md`.
+
+### Phase 6 (v1.2) Universal Audit, Multi-Agent & Schema Fuzzing Sprint Checklist:
+- [x] Implement Universal Audit Event Contract & Decoupled Evaluator Engine (`agent_chaos/core/audit.py`).
+- [x] Implement Declarative In-Org Custom Metadata Engine (`Agent_Chaos_Rule__mdt` & updated `AgentGatePolicy.cls`).
+- [x] Implement Automated Tool Schema Mutation & Fuzzer (`agent_chaos/fuzzing/`).
+- [x] Implement Multi-Agent Handoff & Cascade Fault Simulator (`agent_chaos/multiagent/`).
+- [x] Complete test coverage across new modules with 79/79 tests passing (`pytest tests/ -v`).
+
 
 ---
 

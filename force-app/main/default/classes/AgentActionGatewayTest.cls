@@ -79,6 +79,35 @@ private class AgentActionGatewayTest {
     }
 
     @IsTest
+    static void testDeclarativeMetadataFaultInjection() {
+        AgentGatePolicy.resetCounters();
+        AgentGatePolicy.clearMockRules();
+
+        // Admin configures a declarative rule: for action 'createSupportCase', inject 504_GATEWAY_TIMEOUT
+        AgentGatePolicy.setMockRule('createSupportCase', '504_GATEWAY_TIMEOUT', 'HTTP 504 Gateway Timeout from Core CRM', 0);
+
+        AgentActionGateway.ActionRequest req = new AgentActionGateway.ActionRequest();
+        req.actionName = 'createSupportCase';
+        req.subject = 'Declarative Chaos Test';
+        req.customerEmail = 'standard-user@example.com';
+        // Note: No chaosDirective in request! Rule is declarative!
+
+        Test.startTest();
+        List<AgentActionGateway.ActionResult> results = AgentActionGateway.execute(
+            new List<AgentActionGateway.ActionRequest>{ req }
+        );
+        Test.stopTest();
+
+        System.assertEquals(1, results.size());
+        AgentActionGateway.ActionResult res = results[0];
+        System.assertEquals(false, res.isSuccess, 'Declarative rule should trigger fault');
+        System.assertEquals('CHAOS_FAULT_INJECTED', res.errorCode);
+        System.assert(res.errorMessage.contains('504 Gateway Timeout'), 'Error message should match declarative rule');
+
+        AgentGatePolicy.clearMockRules();
+    }
+
+    @IsTest
     static void testUnknownActionHandling() {
         AgentGatePolicy.resetCounters();
 
@@ -96,3 +125,4 @@ private class AgentActionGatewayTest {
         System.assertEquals('UNKNOWN_ACTION', results[0].errorCode);
     }
 }
+
