@@ -297,7 +297,28 @@ Audit Score: 88.5%
 
 ---
 
+### Phase 5.1: 30-Second Turnkey Action Reliability Audit (Any Action)
+
+Anyone with an Agentforce application can test **any** Invocable Action or Flow against the 5 real-world production failure modes using a single command:
+
+```bash
+agent-chaos salesforce audit-action \
+  --action-name "Create_Support_Case" \
+  --tests all \
+  --html-report action-scorecard.html
+```
+
+#### What It Evaluates:
+1. **Validation Rule & DML Rollback Blindness:** Simulates `FIELD_CUSTOM_VALIDATION_EXCEPTION` and checks if the agent hallucinates a fake record ID or falsely claims success.
+2. **Slot-Filling Fuzz & Null Safety:** Feeds `null` and empty string arguments into the action's inputs to catch unhandled `System.NullPointerExceptions`.
+3. **AgentUser Permission & Flow Shielding:** Simulates permission stripping on custom fields to ensure the Flow/Apex initiates graceful human escalation instead of crashing.
+4. **ReAct Loop Breaker & Governor Guard:** Asserts that Gate 1 circuit breaking activates before the agent exhausts the 100 SOQL query or 10,000ms CPU limits.
+5. **Governor CPU & Latency Budget:** Profiles execution duration against the 10.0s Apex synchronous CPU governor limit.
+
+---
+
 ### Phase 6: Automated CI/CD Quality Gate (GitHub Actions)
+
 
 Add continuous resilience testing to your repository by adding `.github/workflows/agentforce-chaos-ci.yml`:
 

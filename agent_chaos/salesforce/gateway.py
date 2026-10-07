@@ -151,6 +151,8 @@ class SalesforceGatewayHandler(BaseHTTPRequestHandler):
 class SalesforceChaosServer(HTTPServer):
     """Custom HTTPServer maintaining fault rules and trajectory recordings for Salesforce."""
 
+    allow_reuse_address = True
+
     def __init__(
         self,
         server_address: tuple[str, int],

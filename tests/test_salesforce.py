@@ -211,11 +211,18 @@ def test_gateway_fault_removal_and_trajectory(chaos_gateway: SalesforceChaosGate
     assert isinstance(body2, dict)
     assert body2["status"] == "COMPLETED"
 
+    # Allow server thread to finish recording call
+    for _ in range(10):
+        if len(chaos_gateway.recorder.events) >= 2:
+            break
+        time.sleep(0.05)
+
     # Validate recorder
     events = chaos_gateway.recorder.events
     assert len(events) >= 2
     assert events[-2].fault_injected is not None
     assert events[-1].fault_injected is None
+
 
 
 # ============================================================================

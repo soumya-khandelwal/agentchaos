@@ -30,6 +30,12 @@ from agent_chaos.salesforce.native.runner import (
     NativeTestTurnResult,
 )
 from agent_chaos.salesforce.native.reporting import generate_native_html_report
+from agent_chaos.salesforce.native.action_auditor import (
+    UniversalActionAuditor,
+    SalesforceFailureMode,
+    ActionAuditReport,
+    ActionTestVectorResult,
+)
 
 __all__ = [
     "export_apex_classes",
@@ -53,4 +59,9 @@ __all__ = [
     "NativeTestTurnResult",
     "NativeScenarioReport",
     "generate_native_html_report",
+    "UniversalActionAuditor",
+    "SalesforceFailureMode",
+    "ActionAuditReport",
+    "ActionTestVectorResult",
 ]
+

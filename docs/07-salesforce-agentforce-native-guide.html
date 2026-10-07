@@ -706,6 +706,22 @@ Total Scenarios: 3 | Passed: 2 | SLA Violations: 1 | Hallucinations: 0
 Audit Score: 88.5%
 </code></pre>
 <hr />
+<h3>Phase 5.1: 30-Second Turnkey Action Reliability Audit (Any Action)</h3>
+<p>Anyone with an Agentforce application can test <strong>any</strong> Invocable Action or Flow against the 5 real-world production failure modes using a single command:</p>
+<pre class="language-bash"><code class="language-bash">agent-chaos salesforce audit-action \
+  --action-name &quot;Create_Support_Case&quot; \
+  --tests all \
+  --html-report action-scorecard.html
+</code></pre>
+<h4>What It Evaluates:</h4>
+<ol>
+<li><strong>Validation Rule &amp; DML Rollback Blindness:</strong> Simulates <code>FIELD_CUSTOM_VALIDATION_EXCEPTION</code> and checks if the agent hallucinates a fake record ID or falsely claims success.</li>
+<li><strong>Slot-Filling Fuzz &amp; Null Safety:</strong> Feeds <code>null</code> and empty string arguments into the action's inputs to catch unhandled <code>System.NullPointerExceptions</code>.</li>
+<li><strong>AgentUser Permission &amp; Flow Shielding:</strong> Simulates permission stripping on custom fields to ensure the Flow/Apex initiates graceful human escalation instead of crashing.</li>
+<li><strong>ReAct Loop Breaker &amp; Governor Guard:</strong> Asserts that Gate 1 circuit breaking activates before the agent exhausts the 100 SOQL query or 10,000ms CPU limits.</li>
+<li><strong>Governor CPU &amp; Latency Budget:</strong> Profiles execution duration against the 10.0s Apex synchronous CPU governor limit.</li>
+</ol>
+<hr />
 <h3>Phase 6: Automated CI/CD Quality Gate (GitHub Actions)</h3>
 <p>Add continuous resilience testing to your repository by adding <code>.github/workflows/agentforce-chaos-ci.yml</code>:</p>
 <pre class="language-yaml"><code class="language-yaml">name: Agentforce Chaos Quality Gate

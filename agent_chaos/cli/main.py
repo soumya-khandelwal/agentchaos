@@ -571,5 +571,101 @@ def run_suite_command(
         sys.exit(1)
 
 
+@salesforce_group.command("audit-action")
+@click.option("--action-name", "-a", required=True, help="Name of the Invocable Action or Flow to audit.")
+@click.option(
+    "--tests",
+    "-t",
+    default="all",
+    help="Comma-separated test modes: validation_rule, slot_filling_fuzz, agent_user_permission, governor_react_loop, turn_latency_budget, or all.",
+)
+@click.option("--html-report", default=None, help="Path to write standalone visual HTML scorecard.")
+def audit_action_command(action_name: str, tests: str, html_report: Optional[str]) -> None:
+    """Audit ANY Salesforce Agentforce Action against the 5 real-world production failure modes."""
+    from rich.panel import Panel
+    from rich.table import Table
+    from agent_chaos.salesforce.native.action_auditor import (
+        SalesforceFailureMode,
+        UniversalActionAuditor,
+    )
+
+    console.print(f"[bold cyan]⚡ Universal Action Reliability Audit:[/bold cyan] [bold white]{action_name}[/bold white]\n")
+
+    selected_modes = None
+    if tests != "all":
+        selected_modes = [SalesforceFailureMode(m.strip()) for m in tests.split(",") if m.strip()]
+
+    auditor = UniversalActionAuditor()
+    report = auditor.audit_action(action_name, active_modes=selected_modes)
+
+    table = Table(title=f"Action Reliability Scorecard: {action_name}", border_style="cyan")
+    table.add_column("Failure Mode Vector", style="bold white", width=34)
+    table.add_column("Severity", width=12)
+    table.add_column("Status", width=10, justify="center")
+    table.add_column("Audit Findings / Details", width=46)
+
+    for r in report.results:
+        status_str = "[bold green]PASS[/bold green]" if r.passed else "[bold red]FAIL[/bold red]"
+        sev_color = "red" if r.severity == "CRITICAL" else ("yellow" if r.severity == "HIGH" else "cyan")
+        sev_str = f"[{sev_color}]{r.severity}[/{sev_color}]"
+        table.add_row(r.name, sev_str, status_str, r.details)
+
+    console.print(table)
+
+    score_color = "green" if report.overall_score >= 80 else ("yellow" if report.overall_score >= 50 else "red")
+    console.print(
+        Panel(
+            f"[bold]Readiness Score:[/bold] [{score_color}]{report.overall_score:.1f}%[/{score_color}] "
+            f"({report.passed_vectors}/{report.total_vectors} failure modes clean)\n"
+            f"[bold]Overall Verdict:[/bold] [{'green' if report.passed else 'red'}]{'READY FOR PRODUCTION' if report.passed else 'AT RISK / ACTION REQUIRED'}[/{'green' if report.passed else 'red'}]",
+            title=f"Summary for {action_name}",
+            border_style=score_color,
+        )
+    )
+
+    if report.remediation_checklist:
+        console.print("\n[bold yellow]🛠️ Recommended Remediation Recipes:[/bold yellow]")
+        for idx, rem in enumerate(report.remediation_checklist, start=1):
+            console.print(f"  [bold cyan]{idx}.[/bold cyan] {rem}\n")
+
+    if html_report:
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>Agentforce Action Audit: {action_name}</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; }}
+        .card {{ background: #1e293b; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }}
+        .pass {{ color: #22c55e; font-weight: bold; }}
+        .fail {{ color: #ef4444; font-weight: bold; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
+        th, td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; }}
+        th {{ color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; }}
+        .recipe {{ background: #0f172a; border-left: 4px solid #f59e0b; padding: 0.75rem 1rem; margin-top: 0.5rem; font-family: monospace; font-size: 0.9rem; color: #fde68a; }}
+    </style>
+</head>
+<body>
+    <h1>⚡ Action Reliability Scorecard: {action_name}</h1>
+    <div class="card">
+        <h2>Readiness Score: <span class="{ 'pass' if report.passed else 'fail' }">{report.overall_score:.1f}%</span></h2>
+        <p>{report.passed_vectors} of {report.total_vectors} production failure modes verified clean.</p>
+    </div>
+    <div class="card">
+        <h3>Failure Mode Evaluation</h3>
+        <table>
+            <thead><tr><th>Vector</th><th>Severity</th><th>Status</th><th>Findings</th></tr></thead>
+            <tbody>
+                {"".join(f"<tr><td><b>{r.name}</b></td><td>{r.severity}</td><td class='{'pass' if r.passed else 'fail'}'>{'PASS' if r.passed else 'FAIL'}</td><td>{r.details}</td></tr>" for r in report.results)}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>"""
+        with open(html_report, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        console.print(f"[bold green]✓ Visual HTML Audit Scorecard exported to:[/bold green] [underline]file://{html_report}[/underline]")
+
+
 if __name__ == "__main__":
     cli()
+
