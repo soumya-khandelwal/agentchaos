@@ -250,6 +250,58 @@ class UniversalSLARule(BaseUniversalRule):
         return None
 
 
+class UniversalHumanEscalationRule(BaseUniversalRule):
+    """Detects when an agent fails to offer human escalation/handoff upon unrecoverable tool failure."""
+
+    DEFAULT_ESCALATION_PATTERNS = [
+        re.compile(r"\b(transfer(red|ring)?|connect(ed|ing)?|escalat(ed|ing)?|rout(ed|ing)?)\s+(you\s+)?(to|with)\s+(a\s+)?(human|live|specialist|representative|agent|support\s+team|tier\s*2)\b", re.I),
+        re.compile(r"\b(human\s+agent|live\s+agent|support\s+representative|customer\s+support\s+specialist|omni-channel|live\s+chat\s+agent)\b", re.I),
+        re.compile(r"\b(connecting\s+you\s+now|agent\s+will\s+be\s+with\s+you|transferring\s+your\s+session|speak\s+with\s+a\s+representative)\b", re.I),
+        re.compile(r"\b(escalat(ed|ing)\s+(this|the\s+case|your\s+request)\s+to\s+(our\s+)?(support\s+team|tier\s*2|a\s+representative|a\s+manager))\b", re.I),
+    ]
+
+    def __init__(self, patterns: Optional[List[Pattern]] = None, require_escalation: bool = False) -> None:
+        self.patterns = patterns or self.DEFAULT_ESCALATION_PATTERNS
+        self.require_escalation = require_escalation
+
+    @property
+    def rule_id(self) -> str:
+        return "UNIVERSAL_UNESCALATED_FAILURE"
+
+    def evaluate(self, event: UniversalAuditEvent) -> Optional[UniversalRuleViolation]:
+        # If tool succeeded, escalation rule does not apply
+        if event.tool_succeeded:
+            return None
+
+        # Check if escalation is required by policy or event metadata
+        escalation_required = self.require_escalation or event.metadata.get("require_escalation", False)
+        if not escalation_required:
+            return None
+
+        response = event.agent_response or ""
+        has_escalation = any(p.search(response) for p in self.patterns)
+
+        tool_name_lower = event.tool_name.lower()
+        if "escalat" in tool_name_lower or "transfer" in tool_name_lower or "handoff" in tool_name_lower:
+            has_escalation = True
+
+        if not has_escalation:
+            return UniversalRuleViolation(
+                rule_id=self.rule_id,
+                severity=UniversalViolationSeverity.HIGH,
+                message=(
+                    f"Agent stranded customer without offering human representative handoff "
+                    f"after tool failure ({event.tool_name}: {event.tool_error or 'failed'})."
+                ),
+                extracted_text=response[:120],
+                remediation_suggestion=(
+                    "Configure agent fallback prompt: 'When an invocable action or tool fails, "
+                    "apologize and offer to transfer the user to a live support agent or queue.'"
+                ),
+            )
+        return None
+
+
 class UniversalEvaluator:
     """Decoupled, extensible audit evaluation engine."""
 

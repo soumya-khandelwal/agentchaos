@@ -176,6 +176,27 @@ agent-chaos salesforce check-hallucination \
   --response "I have successfully processed your refund of $50!"
 ```
 
+### Recipe G: Human Escalation & Omni-Channel Verification
+```python
+from agent_chaos.core.assertions import assert_escalated_to_human
+
+# Assert that when tools fail, the agent routes to a live human rather than stranding the user
+def test_agent_escalates_on_system_outage():
+    # Can assert directly on agent response text, trajectory recorder, or audit reports
+    assert_escalated_to_human(turn_result.agent_response)
+```
+
+### Recipe H: 30-Second Turnkey Action Reliability Audit (0 Flex Credits Consumed)
+```bash
+# Audits any action or Flow against validation rules, null pointer fuzzing,
+# permission faults, ReAct governor loops, CPU limits, and Data Cloud retrieval
+agent-chaos salesforce audit-action \
+  --action-name "Create_Support_Case" \
+  --tests all \
+  --html-report action-scorecard.html
+```
+
 ---
 
 [← Previous: 03. Code Walkthrough](03-code-walkthrough.md) | [Next: 05. Salesforce Agentforce Guide →](05-salesforce-agentforce.md)
+

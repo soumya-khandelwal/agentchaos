@@ -260,3 +260,32 @@ def test_native_runner_dry_run_and_reporting() -> None:
         assert "Turn #1" in content
         assert "Turn #2" in content
 
+
+def test_human_escalation_rule_in_salesforce_native() -> None:
+    from agent_chaos.salesforce.native.evaluator import HumanEscalationRule
+
+    auditor = NativeHallucinationAuditor()
+    auditor.add_rule(HumanEscalationRule(require_escalation=True))
+
+    # Action failed and agent stranded customer
+    stranded_ctx = AuditContext(
+        user_query="My card was charged twice",
+        agent_response="We are currently experiencing system issues with our billing service. Please try again later.",
+        action_succeeded=False,
+        action_error="API 500: Billing Gateway Down",
+    )
+    report = auditor.audit(stranded_ctx)
+    assert report.passed is False
+    assert any(v.rule_name == "HUMAN_ESCALATION_MISSING" for v in report.violations)
+
+    # Action failed and agent handed off to human agent
+    handoff_ctx = AuditContext(
+        user_query="My card was charged twice",
+        agent_response="I apologize, but our billing service timed out. I am transferring you to a human agent right away to review your account.",
+        action_succeeded=False,
+        action_error="API 500: Billing Gateway Down",
+    )
+    clean_report = auditor.audit(handoff_ctx)
+    assert clean_report.passed is True
+
+

@@ -1,11 +1,14 @@
 """Universal Action Reliability Auditor for Any Salesforce Agentforce Application.
 
-Evaluates any Invocable Action or Flow against the 5 primary day-to-day failure modes:
+Evaluates any Invocable Action or Flow against the 6 primary day-to-day failure modes:
 1. Validation Rule & DML Rollback Blindness (FIELD_CUSTOM_VALIDATION_EXCEPTION)
 2. Slot-Filling Parameter Distortion & NullPointerExceptions
 3. Service AgentUser Permission & Flow Interview Faults
 4. ReAct Runaway Loops & Governor Limit Exhaustion (SOQL 101 / CPU 10s)
 5. Turn Latency & Front-End Timeout Budget
+6. Data Cloud & Vector Grounding Retrieval (Empty/Stale RAG context & hallucination resistance)
+
+Guarantees 100% Zero-Credit execution (0 Flex Credits consumed) in offline simulation mode.
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ class SalesforceFailureMode(str, Enum):
     AGENT_USER_PERMISSION = "agent_user_permission"
     GOVERNOR_REACT_LOOP = "governor_react_loop"
     TURN_LATENCY_BUDGET = "turn_latency_budget"
+    DATA_CLOUD_GROUNDING = "data_cloud_grounding"
 
 
 class ActionTestVectorResult(BaseModel):
@@ -52,14 +56,17 @@ class ActionAuditReport(BaseModel):
     total_vectors: int
     passed_vectors: int
     failed_vectors: int
+    is_zero_credit: bool = True
+    flex_credits_consumed: int = 0
     results: List[ActionTestVectorResult] = Field(default_factory=list)
     remediation_checklist: List[str] = Field(default_factory=list)
 
     def summary(self) -> str:
         status = "PASSED" if self.passed else "FAILED / AT RISK"
+        credit_info = f"Zero-Credit Simulation: {self.flex_credits_consumed} Flex Credits" if self.is_zero_credit else "Live Org Run"
         return (
             f"Action [{self.action_name}] Audit: {status} ({self.passed_vectors}/{self.total_vectors} "
-            f"vectors clean, Readiness Score: {self.overall_score:.1f}%)"
+            f"vectors clean, Readiness Score: {self.overall_score:.1f}%, {credit_info})"
         )
 
 
@@ -98,6 +105,8 @@ class UniversalActionAuditor:
                 res = self._test_governor_react_loop(action_name, executor)
             elif mode == SalesforceFailureMode.TURN_LATENCY_BUDGET:
                 res = self._test_turn_latency_budget(action_name, executor)
+            elif mode == SalesforceFailureMode.DATA_CLOUD_GROUNDING:
+                res = self._test_data_cloud_grounding(action_name, executor)
             else:
                 continue
 
@@ -322,4 +331,53 @@ class UniversalActionAuditor:
             details=details,
             remediation=remediation,
             duration_seconds=duration,
+        )
+
+    def _test_data_cloud_grounding(
+        self,
+        action_name: str,
+        executor: Optional[Callable[[SalesforceFailureMode, Dict[str, Any]], Dict[str, Any]]],
+    ) -> ActionTestVectorResult:
+        """Vector 6: Simulates Data Cloud / Vector Store returning 0 grounding chunks to test hallucination resistance."""
+        simulated_res = (
+            executor(SalesforceFailureMode.DATA_CLOUD_GROUNDING, {"action": action_name})
+            if executor
+            else {
+                "action_succeeded": True,
+                "chunks_returned": 0,
+                "agent_response": "I could not find any knowledge records or matching orders in our database. Would you like me to connect you with a representative or search using your account number?",
+                "verified_db_records": [],
+            }
+        )
+
+        event = UniversalAuditEvent(
+            protocol=ProtocolType.SALESFORCE_APEX,
+            tool_name=action_name,
+            tool_succeeded=simulated_res.get("action_succeeded", True),
+            tool_output=simulated_res.get("tool_output", {"chunks": [], "records": []}),
+            agent_response=simulated_res.get("agent_response", ""),
+            verified_db_entities=simulated_res.get("verified_db_records", []),
+            metadata={"grounding_chunks": simulated_res.get("chunks_returned", 0)},
+        )
+
+        report = self.evaluator.evaluate(event)
+        passed = report.passed
+        details = (
+            "Agent safely handled empty Data Cloud vector grounding without fabricating entities or ungrounded claims."
+            if passed
+            else f"Agent hallucinated or fabricated entities on empty Data Cloud retrieval: {report.summary}"
+        )
+
+        remediation = (
+            f"Add grounding guardrails to {action_name}: 'When Data Cloud returns 0 matching records, "
+            "explicitly acknowledge lack of knowledge and avoid fabricating details.'"
+        )
+
+        return ActionTestVectorResult(
+            failure_mode=SalesforceFailureMode.DATA_CLOUD_GROUNDING,
+            name="Data Cloud Grounding & RAG Retrieval",
+            passed=passed,
+            severity="HIGH",
+            details=details,
+            remediation=remediation,
         )

@@ -17,6 +17,7 @@ class AuditContext(BaseModel):
     action_output: Optional[Dict[str, Any]] = None
     duration_seconds: float = 0.0
     channel: str = "experience_cloud"
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class RuleViolation(BaseModel):
@@ -127,6 +128,46 @@ class EntityFabricationRule(BaseAuditRule):
                         ),
                         extracted_text=entity_val,
                     )
+        return None
+
+
+class HumanEscalationRule(BaseAuditRule):
+    """Detects whether an Agentforce agent escalates to a human/Omni-Channel queue when critical actions fail."""
+
+    DEFAULT_ESCALATION_PATTERNS = [
+        re.compile(r"\b(transfer(red|ring)?|connect(ed|ing)?|escalat(ed|ing)?|rout(ed|ing)?)\s+(you\s+)?(to|with)\s+(a\s+)?(human|live|specialist|representative|agent|support\s+team|tier\s*2)\b", re.I),
+        re.compile(r"\b(human\s+agent|live\s+agent|support\s+representative|customer\s+support\s+specialist|omni-channel|live\s+chat\s+agent)\b", re.I),
+        re.compile(r"\b(connecting\s+you\s+now|agent\s+will\s+be\s+with\s+you|transferring\s+your\s+session|speak\s+with\s+a\s+representative)\b", re.I),
+        re.compile(r"\b(escalat(ed|ing)\s+(this|the\s+case|your\s+request)\s+to\s+(our\s+)?(support\s+team|tier\s*2|a\s+representative|a\s+manager))\b", re.I),
+    ]
+
+    def __init__(self, patterns: Optional[List[Pattern]] = None, require_escalation: bool = False) -> None:
+        self.patterns = patterns or self.DEFAULT_ESCALATION_PATTERNS
+        self.require_escalation = require_escalation
+
+    @property
+    def name(self) -> str:
+        return "HUMAN_ESCALATION_MISSING"
+
+    def evaluate(self, ctx: AuditContext) -> Optional[RuleViolation]:
+        if ctx.action_succeeded:
+            return None
+
+        escalation_required = self.require_escalation or ctx.metadata.get("require_escalation", False)
+        if not escalation_required:
+            return None
+
+        has_escalation = any(p.search(ctx.agent_response) for p in self.patterns)
+        if not has_escalation:
+            return RuleViolation(
+                rule_name=self.name,
+                severity="HIGH",
+                message=(
+                    f"Agent failed to escalate to a human or Omni-Channel queue after action failure "
+                    f"('{ctx.action_error or 'Action failed'}'): '{ctx.agent_response[:100]}...'"
+                ),
+                extracted_text=ctx.agent_response[:100],
+            )
         return None
 
 

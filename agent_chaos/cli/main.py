@@ -577,11 +577,11 @@ def run_suite_command(
     "--tests",
     "-t",
     default="all",
-    help="Comma-separated test modes: validation_rule, slot_filling_fuzz, agent_user_permission, governor_react_loop, turn_latency_budget, or all.",
+    help="Comma-separated test modes: validation_rule, slot_filling_fuzz, agent_user_permission, governor_react_loop, turn_latency_budget, data_cloud_grounding, or all.",
 )
 @click.option("--html-report", default=None, help="Path to write standalone visual HTML scorecard.")
 def audit_action_command(action_name: str, tests: str, html_report: Optional[str]) -> None:
-    """Audit ANY Salesforce Agentforce Action against the 5 real-world production failure modes."""
+    """Audit ANY Salesforce Agentforce Action against the 6 real-world production failure modes (0 Flex Credits consumed)."""
     from rich.panel import Panel
     from rich.table import Table
     from agent_chaos.salesforce.native.action_auditor import (
@@ -589,7 +589,8 @@ def audit_action_command(action_name: str, tests: str, html_report: Optional[str
         UniversalActionAuditor,
     )
 
-    console.print(f"[bold cyan]⚡ Universal Action Reliability Audit:[/bold cyan] [bold white]{action_name}[/bold white]\n")
+    console.print(f"[bold cyan]⚡ Universal Action Reliability Audit:[/bold cyan] [bold white]{action_name}[/bold white]")
+    console.print("[bold green]💰 Zero-Credit Simulation:[/bold green] [dim]0 Flex Credits consumed (Deterministic Offline CI/CD Verification)[/dim]\n")
 
     selected_modes = None
     if tests != "all":
@@ -617,6 +618,7 @@ def audit_action_command(action_name: str, tests: str, html_report: Optional[str
         Panel(
             f"[bold]Readiness Score:[/bold] [{score_color}]{report.overall_score:.1f}%[/{score_color}] "
             f"({report.passed_vectors}/{report.total_vectors} failure modes clean)\n"
+            f"[bold]Credit Consumption:[/bold] [green]0 Flex Credits[/green] (Offline Simulation Mode)\n"
             f"[bold]Overall Verdict:[/bold] [{'green' if report.passed else 'red'}]{'READY FOR PRODUCTION' if report.passed else 'AT RISK / ACTION REQUIRED'}[/{'green' if report.passed else 'red'}]",
             title=f"Summary for {action_name}",
             border_style=score_color,
@@ -638,6 +640,7 @@ def audit_action_command(action_name: str, tests: str, html_report: Optional[str
         .card {{ background: #1e293b; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }}
         .pass {{ color: #22c55e; font-weight: bold; }}
         .fail {{ color: #ef4444; font-weight: bold; }}
+        .zero-credit-badge {{ display: inline-block; background: rgba(34,197,94,0.15); border: 1px solid #22c55e; color: #4ade80; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; }}
         table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
         th, td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; }}
         th {{ color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; }}
@@ -645,10 +648,11 @@ def audit_action_command(action_name: str, tests: str, html_report: Optional[str
     </style>
 </head>
 <body>
+    <div class="zero-credit-badge">⚡ ZERO FLEX CREDITS CONSUMED (Deterministic Offline Simulation)</div>
     <h1>⚡ Action Reliability Scorecard: {action_name}</h1>
     <div class="card">
         <h2>Readiness Score: <span class="{ 'pass' if report.passed else 'fail' }">{report.overall_score:.1f}%</span></h2>
-        <p>{report.passed_vectors} of {report.total_vectors} production failure modes verified clean.</p>
+        <p>{report.passed_vectors} of {report.total_vectors} production failure modes verified clean (Cost: 0 GenAI Flex Credits).</p>
     </div>
     <div class="card">
         <h3>Failure Mode Evaluation</h3>

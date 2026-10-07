@@ -22,6 +22,7 @@ from agent_chaos.core.assertions import (
     assert_parameters_match,
     assert_max_retries,
     assert_sequence,
+    assert_escalated_to_human,
 )
 from agent_chaos.core.audit import (
     BaseUniversalRule,
@@ -31,6 +32,7 @@ from agent_chaos.core.audit import (
     UniversalEntityFabricationRule,
     UniversalEvaluator,
     UniversalFalseSuccessRule,
+    UniversalHumanEscalationRule,
     UniversalRuleViolation,
     UniversalSLARule,
     UniversalViolationSeverity,
@@ -52,6 +54,7 @@ __all__ = [
     "assert_parameters_match",
     "assert_max_retries",
     "assert_sequence",
+    "assert_escalated_to_human",
     "UniversalAuditEvent",
     "UniversalAuditReport",
     "UniversalEvaluator",
@@ -60,6 +63,7 @@ __all__ = [
     "ProtocolType",
     "BaseUniversalRule",
     "UniversalFalseSuccessRule",
+    "UniversalHumanEscalationRule",
     "UniversalEntityFabricationRule",
     "UniversalSLARule",
 ]

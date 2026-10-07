@@ -13,6 +13,7 @@ from agent_chaos.salesforce.native.evaluator import (
     BaseAuditRule,
     EntityFabricationRule,
     FalseSuccessRule,
+    HumanEscalationRule,
     NativeHallucinationAuditor,
     RuleViolation,
 )
@@ -49,6 +50,7 @@ __all__ = [
     "BaseAuditRule",
     "FalseSuccessRule",
     "EntityFabricationRule",
+    "HumanEscalationRule",
     "NativeHallucinationAuditor",
     "ChannelBudget",
     "ChannelEvaluation",

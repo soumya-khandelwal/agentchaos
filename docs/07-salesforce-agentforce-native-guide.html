@@ -707,20 +707,80 @@ Audit Score: 88.5%
 </code></pre>
 <hr />
 <h3>Phase 5.1: 30-Second Turnkey Action Reliability Audit (Any Action)</h3>
-<p>Anyone with an Agentforce application can test <strong>any</strong> Invocable Action or Flow against the 5 real-world production failure modes using a single command:</p>
+<p>Anyone with an Agentforce application can test <strong>any</strong> Invocable Action or Flow against the 6 real-world production failure modes using a single command:</p>
 <pre class="language-bash"><code class="language-bash">agent-chaos salesforce audit-action \
   --action-name &quot;Create_Support_Case&quot; \
   --tests all \
   --html-report action-scorecard.html
 </code></pre>
-<h4>What It Evaluates:</h4>
+<h4>What It Evaluates (The 6 Production Vectors):</h4>
 <ol>
 <li><strong>Validation Rule &amp; DML Rollback Blindness:</strong> Simulates <code>FIELD_CUSTOM_VALIDATION_EXCEPTION</code> and checks if the agent hallucinates a fake record ID or falsely claims success.</li>
 <li><strong>Slot-Filling Fuzz &amp; Null Safety:</strong> Feeds <code>null</code> and empty string arguments into the action's inputs to catch unhandled <code>System.NullPointerExceptions</code>.</li>
 <li><strong>AgentUser Permission &amp; Flow Shielding:</strong> Simulates permission stripping on custom fields to ensure the Flow/Apex initiates graceful human escalation instead of crashing.</li>
 <li><strong>ReAct Loop Breaker &amp; Governor Guard:</strong> Asserts that Gate 1 circuit breaking activates before the agent exhausts the 100 SOQL query or 10,000ms CPU limits.</li>
 <li><strong>Governor CPU &amp; Latency Budget:</strong> Profiles execution duration against the 10.0s Apex synchronous CPU governor limit.</li>
+<li><strong>Data Cloud Grounding &amp; RAG Retrieval:</strong> Simulates Data Cloud vector search returning 0 chunks or stale records, ensuring the agent doesn't fabricate details or cite ungrounded entities.</li>
 </ol>
+<hr />
+<h3>Phase 5.2: AgentChaos vs. Salesforce Agentforce Testing Center</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Feature / Dimension</th>
+<th style="text-align:left">Salesforce Agentforce Testing Center</th>
+<th style="text-align:left">AgentChaos Tool &amp; Boundary Chaos Layer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Testing Focus</strong></td>
+<td style="text-align:left">Utterance variations, prompt paraphrasing, LLM response style</td>
+<td style="text-align:left">Action &amp; Tool failures, DML rollbacks, circuit breakers, timeout cliffs</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Grading Model</strong></td>
+<td style="text-align:left">LLM-as-a-Judge (1–5 Likert scale, non-deterministic)</td>
+<td style="text-align:left">Deterministic invariant assertions (<code>assert_tool_called</code>, <code>assert_escalated_to_human</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Turn Scope</strong></td>
+<td style="text-align:left">Single-turn utterance evaluation</td>
+<td style="text-align:left">Full multi-turn conversational trajectories with state injection</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Credit Cost</strong></td>
+<td style="text-align:left"><strong>Consumes Flex Credits</strong> for every test run (can be costly)</td>
+<td style="text-align:left"><strong>100% Zero-Credit Offline Simulation</strong> (0 GenAI tokens consumed in CI/CD)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Human Escalation</strong></td>
+<td style="text-align:left">Requires manual transcript inspection</td>
+<td style="text-align:left">Automated programmatic verification (<code>assert_escalated_to_human</code>)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Grounding Verification</strong></td>
+<td style="text-align:left">Prompt-level citations</td>
+<td style="text-align:left">Empty/stale retrieval injection (<code>DATA_CLOUD_GROUNDING</code>)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>[!NOTE]
+<strong>Complementary, Not Competitive:</strong> Agentforce Testing Center optimizes <em>what the LLM says</em> under ideal conditions. AgentChaos verifies <em>how your system holds up</em> when downstream tools, governor limits, permissions, or Data Cloud indexes fail.</p>
+</blockquote>
+<hr />
+<h3>Phase 5.3: Explicit Human &amp; Omni-Channel Escalation Verification</h3>
+<p>When critical actions fail in customer service or sales workflows, an agent must <strong>never strand the customer</strong>. AgentChaos includes built-in verification that either an Omni-Channel routing tool was invoked or explicit human handoff was provided:</p>
+<pre class="language-python"><code class="language-python">from agent_chaos.core.assertions import assert_escalated_to_human
+from agent_chaos.salesforce.native.evaluator import HumanEscalationRule
+
+# 1. Assert on trajectory recorder or agent conversational response
+assert_escalated_to_human(turn_result.agent_response)
+
+# 2. Or register HumanEscalationRule with the native auditor
+auditor.add_rule(HumanEscalationRule(require_escalation=True))
+</code></pre>
 <hr />
 <h3>Phase 6: Automated CI/CD Quality Gate (GitHub Actions)</h3>
 <p>Add continuous resilience testing to your repository by adding <code>.github/workflows/agentforce-chaos-ci.yml</code>:</p>

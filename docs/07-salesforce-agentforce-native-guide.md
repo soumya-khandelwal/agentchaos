@@ -299,7 +299,7 @@ Audit Score: 88.5%
 
 ### Phase 5.1: 30-Second Turnkey Action Reliability Audit (Any Action)
 
-Anyone with an Agentforce application can test **any** Invocable Action or Flow against the 5 real-world production failure modes using a single command:
+Anyone with an Agentforce application can test **any** Invocable Action or Flow against the 6 real-world production failure modes using a single command:
 
 ```bash
 agent-chaos salesforce audit-action \
@@ -308,12 +308,46 @@ agent-chaos salesforce audit-action \
   --html-report action-scorecard.html
 ```
 
-#### What It Evaluates:
+#### What It Evaluates (The 6 Production Vectors):
 1. **Validation Rule & DML Rollback Blindness:** Simulates `FIELD_CUSTOM_VALIDATION_EXCEPTION` and checks if the agent hallucinates a fake record ID or falsely claims success.
 2. **Slot-Filling Fuzz & Null Safety:** Feeds `null` and empty string arguments into the action's inputs to catch unhandled `System.NullPointerExceptions`.
 3. **AgentUser Permission & Flow Shielding:** Simulates permission stripping on custom fields to ensure the Flow/Apex initiates graceful human escalation instead of crashing.
 4. **ReAct Loop Breaker & Governor Guard:** Asserts that Gate 1 circuit breaking activates before the agent exhausts the 100 SOQL query or 10,000ms CPU limits.
 5. **Governor CPU & Latency Budget:** Profiles execution duration against the 10.0s Apex synchronous CPU governor limit.
+6. **Data Cloud Grounding & RAG Retrieval:** Simulates Data Cloud vector search returning 0 chunks or stale records, ensuring the agent doesn't fabricate details or cite ungrounded entities.
+
+---
+
+### Phase 5.2: AgentChaos vs. Salesforce Agentforce Testing Center
+
+| Feature / Dimension | Salesforce Agentforce Testing Center | AgentChaos Tool & Boundary Chaos Layer |
+| :--- | :--- | :--- |
+| **Testing Focus** | Utterance variations, prompt paraphrasing, LLM response style | Action & Tool failures, DML rollbacks, circuit breakers, timeout cliffs |
+| **Grading Model** | LLM-as-a-Judge (1–5 Likert scale, non-deterministic) | Deterministic invariant assertions (`assert_tool_called`, `assert_escalated_to_human`) |
+| **Turn Scope** | Single-turn utterance evaluation | Full multi-turn conversational trajectories with state injection |
+| **Credit Cost** | **Consumes Flex Credits** for every test run (can be costly) | **100% Zero-Credit Offline Simulation** (0 GenAI tokens consumed in CI/CD) |
+| **Human Escalation** | Requires manual transcript inspection | Automated programmatic verification (`assert_escalated_to_human`) |
+| **Grounding Verification** | Prompt-level citations | Empty/stale retrieval injection (`DATA_CLOUD_GROUNDING`) |
+
+> [!NOTE]
+> **Complementary, Not Competitive:** Agentforce Testing Center optimizes *what the LLM says* under ideal conditions. AgentChaos verifies *how your system holds up* when downstream tools, governor limits, permissions, or Data Cloud indexes fail.
+
+---
+
+### Phase 5.3: Explicit Human & Omni-Channel Escalation Verification
+
+When critical actions fail in customer service or sales workflows, an agent must **never strand the customer**. AgentChaos includes built-in verification that either an Omni-Channel routing tool was invoked or explicit human handoff was provided:
+
+```python
+from agent_chaos.core.assertions import assert_escalated_to_human
+from agent_chaos.salesforce.native.evaluator import HumanEscalationRule
+
+# 1. Assert on trajectory recorder or agent conversational response
+assert_escalated_to_human(turn_result.agent_response)
+
+# 2. Or register HumanEscalationRule with the native auditor
+auditor.add_rule(HumanEscalationRule(require_escalation=True))
+```
 
 ---
 

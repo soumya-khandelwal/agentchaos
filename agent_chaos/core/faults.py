@@ -18,6 +18,8 @@ class FaultType(str, Enum):
     LATENCY = "latency"
     CUSTOM_EXCEPTION = "custom_exception"
     POISONED_PAYLOAD = "poisoned_payload"
+    EMPTY_GROUNDING = "empty_grounding"
+    STALE_GROUNDING = "stale_grounding"
 
 
 class FaultTrigger(str, Enum):
@@ -117,6 +119,28 @@ class Fault(BaseModel):
             message="Adversarial poisoned payload injected",
         )
 
+    @classmethod
+    def empty_grounding(cls, times: Optional[int] = None, message: Optional[str] = None) -> "Fault":
+        """Simulate Data Cloud / Vector Store returning 0 relevant chunks (empty RAG context)."""
+        return cls(
+            fault_type=FaultType.EMPTY_GROUNDING,
+            trigger=FaultTrigger.N_TIMES if times is not None else FaultTrigger.ALWAYS,
+            times=times,
+            payload={"chunks": [], "records": [], "total_chunks": 0, "status": "NO_GROUNDING_FOUND"},
+            message=message or "Data Cloud vector search returned 0 matching records",
+        )
+
+    @classmethod
+    def stale_grounding(cls, stale_payload: Any = None, times: Optional[int] = None, message: Optional[str] = None) -> "Fault":
+        """Simulate Data Cloud / Vector Store returning outdated or superseded knowledge articles."""
+        return cls(
+            fault_type=FaultType.STALE_GROUNDING,
+            trigger=FaultTrigger.N_TIMES if times is not None else FaultTrigger.ALWAYS,
+            times=times,
+            payload=stale_payload or {"chunks": [{"text": "[DEPRECATED POLICY] Return window is 14 days", "version": "v1-outdated"}]},
+            message=message or "Data Cloud vector index returned stale/deprecated grounding documents",
+        )
+
     def should_trigger(self, fault_invocation_count: int, args_dict: Dict[str, Any]) -> bool:
         """Evaluate if the fault should activate on this fault occurrence index."""
         if self.condition and not self.condition(args_dict):
@@ -143,7 +167,7 @@ class Fault(BaseModel):
             if self.custom_exception:
                 raise self.custom_exception
             raise RuntimeError(self.message)
-        elif self.fault_type in (FaultType.MALFORMED_DATA, FaultType.POISONED_PAYLOAD):
+        elif self.fault_type in (FaultType.MALFORMED_DATA, FaultType.POISONED_PAYLOAD, FaultType.EMPTY_GROUNDING, FaultType.STALE_GROUNDING):
             return self.payload
         elif self.fault_type == FaultType.LATENCY:
             return None  # Let real function proceed after delay
@@ -162,7 +186,7 @@ class Fault(BaseModel):
             if self.custom_exception:
                 raise self.custom_exception
             raise RuntimeError(self.message)
-        elif self.fault_type in (FaultType.MALFORMED_DATA, FaultType.POISONED_PAYLOAD):
+        elif self.fault_type in (FaultType.MALFORMED_DATA, FaultType.POISONED_PAYLOAD, FaultType.EMPTY_GROUNDING, FaultType.STALE_GROUNDING):
             return self.payload
         elif self.fault_type == FaultType.LATENCY:
             return None  # Let real function proceed after delay
