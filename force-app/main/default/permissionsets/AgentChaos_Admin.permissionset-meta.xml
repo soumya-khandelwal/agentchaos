@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Provides full administrative and auditing access to AgentChaos Studio and Custom Metadata rules.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>AgentChaos Admin</label>
+    <classAccesses>
+        <apexClass>AgentChaosStudioController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>AgentActionGateway</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>AgentGatePolicy</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>CaseSupportChaosAction</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <tabSettings>
+        <tab>AgentChaos_Studio</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+</PermissionSet>

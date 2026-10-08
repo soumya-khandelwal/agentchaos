@@ -1,0 +1,58 @@
+.spinner-container {
+    position: relative;
+    min-height: 80px;
+}
+
+.scorecard-hero {
+    background: linear-gradient(135deg, #0b1528 0%, #172846 100%);
+    border: 1px solid #1e3a8a;
+    border-radius: 8px;
+    padding: 1.5rem;
+    color: #f8fafc;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.vector-card {
+    border-left: 4px solid #2563eb;
+    background-color: #ffffff;
+    border-radius: 4px;
+    transition: box-shadow 0.2s ease;
+}
+
+.vector-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.vector-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.recipe-box {
+    background-color: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.825rem;
+    color: #475569;
+}
+
+.recipe-label {
+    font-weight: 600;
+    color: #0f172a;
+    margin-right: 0.5rem;
+}
+
+.recipe-text {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color: #2563eb;
+}
+
+.badge-zero-credit {
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}

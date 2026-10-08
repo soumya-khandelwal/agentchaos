@@ -351,6 +351,33 @@ auditor.add_rule(HumanEscalationRule(require_escalation=True))
 
 ---
 
+### Phase 5.4: In-Org Lightning Web Component — "AgentChaos Studio"
+
+For Salesforce administrators and developers who want an interactive visual experience directly inside Salesforce without running terminal commands, AgentChaos includes a native Lightning Web Component and Custom Tab:
+
+1. **Deploy to your Org:**
+   ```bash
+   sf project deploy start --target-org my-sandbox
+   ```
+
+2. **Assign Permission Set:**
+   ```bash
+   sf org assign permset --name AgentChaos_Admin --target-org my-sandbox
+   ```
+
+3. **Open in Salesforce:**
+   - In Salesforce, click the **App Launcher** (9 dots).
+   - Search for **"AgentChaos Studio"** and open the tab.
+
+4. **Features Inside the LWC:**
+   - **Automatic Action Discovery:** Automatically populates active Invocable Actions and Autolaunched Flows in your org.
+   - **One-Click Audit Execution:** Click **"Run Chaos Audit"** to execute all 6 failure mode test vectors in Apex runtime.
+   - **Interactive Scorecard & Remediations:** View real-time pass/fail status, severity tags, and remediation code recipes.
+   - **Circuit Breaker Monitor:** Inspect active declarative rules loaded from `Agent_Chaos_Rule__mdt` and in-flight governor gate limits.
+   - **100% Zero-Credit Guarantee:** Executes entirely in Apex with 0 Flex Credits consumed.
+
+---
+
 ### Phase 6: Automated CI/CD Quality Gate (GitHub Actions)
 
 

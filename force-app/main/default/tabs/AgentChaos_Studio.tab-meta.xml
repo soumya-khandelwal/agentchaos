@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>AgentChaos Studio — Interactive Agentforce Reliability Scorecards and In-Flight Guardrail Monitor</description>
+    <label>AgentChaos Studio</label>
+    <lwcComponent>agentChaosStudio</lwcComponent>
+    <motif>Custom67: Gears</motif>
+</CustomTab>

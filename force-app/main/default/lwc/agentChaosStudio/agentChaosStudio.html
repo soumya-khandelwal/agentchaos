@@ -1,0 +1,178 @@
+<template>
+    <lightning-card title="AgentChaos Studio" icon-name="standard:bot">
+        <!-- Top Status Banner & Badges -->
+        <div slot="actions" class="slds-grid slds-grid_vertical-align-center slds-gutters_x-small">
+            <span class="badge-zero-credit slds-badge slds-theme_success slds-m-right_small">
+                ⚡ 0 FLEX CREDITS CONSUMED (Offline Mode)
+            </span>
+            <span class="slds-badge slds-badge_lightest">
+                🛡️ Org Limit: SOQL 100 / CPU 10,000ms
+            </span>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <!-- Spinner -->
+            <template if:true={isLoading}>
+                <div class="spinner-container">
+                    <lightning-spinner alternative-text="Auditing Invocable Action..." size="medium"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Action Selector Bar -->
+            <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
+                        <lightning-combobox
+                            name="targetAction"
+                            label="Target Invocable Action / Flow"
+                            value={selectedAction}
+                            placeholder="Select an Invocable Action or Flow to audit"
+                            options={actionOptions}
+                            onchange={handleActionChange}>
+                        </lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
+                        <lightning-button
+                            variant="brand"
+                            label="Run Chaos Audit"
+                            icon-name="utility:thunder"
+                            onclick={handleRunAudit}
+                            disabled={isLoading}>
+                        </lightning-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Report Summary Card -->
+            <template if:true={report}>
+                <div class="scorecard-hero slds-box slds-m-bottom_medium">
+                    <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                            <div class="slds-text-heading_small slds-text-color_weak">READINESS SCORE</div>
+                            <div class="slds-text-heading_large font-bold">
+                                <span class={scoreColorClass}>{report.overallScore}%</span>
+                            </div>
+                            <div class="slds-m-top_xx-small">
+                                <span class={verdictBadgeClass}>{verdictText}</span>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_center">
+                            <div class="slds-text-heading_small slds-text-color_weak">FAILURE MODES CLEAN</div>
+                            <div class="slds-text-heading_medium font-bold slds-text-color_success">
+                                {report.passedVectors} / {report.totalVectors} Vectors Clean
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                Action: <b>{report.actionName}</b>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
+                            <div class="slds-text-heading_small slds-text-color_weak">APEX RUNTIME LATENCY</div>
+                            <div class="slds-text-heading_medium font-bold slds-text-color_inverse-weak">
+                                {report.totalDurationMs} ms
+                            </div>
+                            <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                Zero-Credit GenAI Tokens: 0
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 Test Vectors Scorecard Details -->
+                <div class="slds-m-bottom_large">
+                    <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">
+                        🎯 Reliability Vector Scorecard (6 Production Failure Modes)
+                    </h3>
+                    
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <template for:each={report.results} for:item="vec">
+                            <div key={vec.id} class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                <div class="vector-card slds-box slds-box_x-small">
+                                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                                        <div class="slds-col slds-grow">
+                                            <span class="vector-title">{vec.name}</span>
+                                            <span class="slds-badge slds-m-left_small slds-badge_inverse">{vec.severity}</span>
+                                        </div>
+                                        <div class="slds-col slds-no-flex">
+                                            <template if:true={vec.passed}>
+                                                <span class="slds-badge slds-theme_success">✓ PASSED</span>
+                                            </template>
+                                            <template if:false={vec.passed}>
+                                                <span class="slds-badge slds-theme_error">✕ FAILED</span>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <p class="slds-text-body_regular slds-m-top_xx-small">{vec.details}</p>
+                                    <div class="recipe-box slds-m-top_x-small">
+                                        <span class="recipe-label">Remediation Recipe:</span>
+                                        <span class="recipe-text">{vec.remediation}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Active Declarative Rules & Circuit Breakers -->
+            <div class="slds-m-top_medium">
+                <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                    <div class="slds-col slds-grow">
+                        <h3 class="slds-text-heading_small font-bold">
+                            🛡️ In-Flight Circuit Breakers & Custom Metadata Rules
+                        </h3>
+                    </div>
+                    <div class="slds-col slds-no-flex">
+                        <span class="slds-text-body_small slds-text-color_weak">
+                            Managed in <b>Agent_Chaos_Rule__mdt</b>
+                        </span>
+                    </div>
+                </div>
+
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th scope="col"><div class="slds-truncate">Rule Name</div></th>
+                            <th scope="col"><div class="slds-truncate">Target Action</div></th>
+                            <th scope="col"><div class="slds-truncate">Fault / Guard Type</div></th>
+                            <th scope="col"><div class="slds-truncate">Status</div></th>
+                            <th scope="col"><div class="slds-truncate">Description / Error Message</div></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template for:each={rules} for:item="r">
+                            <tr key={r.label} class="slds-hint-parent">
+                                <td data-label="Rule Name">
+                                    <div class="slds-truncate font-bold">{r.label}</div>
+                                </td>
+                                <td data-label="Target Action">
+                                    <div class="slds-truncate"><code>{r.actionName}</code></div>
+                                </td>
+                                <td data-label="Fault / Guard Type">
+                                    <div class="slds-truncate">{r.faultType}</div>
+                                </td>
+                                <td data-label="Status">
+                                    <template if:true={r.isActive}>
+                                        <span class="slds-badge slds-theme_success">ACTIVE</span>
+                                    </template>
+                                    <template if:false={r.isActive}>
+                                        <span class="slds-badge slds-badge_lightest">DISABLED</span>
+                                    </template>
+                                </td>
+                                <td data-label="Description">
+                                    <div class="slds-truncate">{r.errorMessage}</div>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer Documentation Hint -->
+            <div class="slds-m-top_large slds-p-top_medium slds-border_top slds-text-align_center slds-text-color_weak slds-text-body_small">
+                AgentChaos Studio v0.1 • 100% Native Salesforce Agentforce Tooling • No External Servers or Credits Consumed
+            </div>
+        </div>
+    </lightning-card>
+</template>

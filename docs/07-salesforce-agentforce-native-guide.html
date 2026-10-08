@@ -782,6 +782,38 @@ assert_escalated_to_human(turn_result.agent_response)
 auditor.add_rule(HumanEscalationRule(require_escalation=True))
 </code></pre>
 <hr />
+<h3>Phase 5.4: In-Org Lightning Web Component — &quot;AgentChaos Studio&quot;</h3>
+<p>For Salesforce administrators and developers who want an interactive visual experience directly inside Salesforce without running terminal commands, AgentChaos includes a native Lightning Web Component and Custom Tab:</p>
+<ol>
+<li>
+<p><strong>Deploy to your Org:</strong></p>
+<pre class="language-bash"><code class="language-bash">sf project deploy start --target-org my-sandbox
+</code></pre>
+</li>
+<li>
+<p><strong>Assign Permission Set:</strong></p>
+<pre class="language-bash"><code class="language-bash">sf org assign permset --name AgentChaos_Admin --target-org my-sandbox
+</code></pre>
+</li>
+<li>
+<p><strong>Open in Salesforce:</strong></p>
+<ul>
+<li>In Salesforce, click the <strong>App Launcher</strong> (9 dots).</li>
+<li>Search for <strong>&quot;AgentChaos Studio&quot;</strong> and open the tab.</li>
+</ul>
+</li>
+<li>
+<p><strong>Features Inside the LWC:</strong></p>
+<ul>
+<li><strong>Automatic Action Discovery:</strong> Automatically populates active Invocable Actions and Autolaunched Flows in your org.</li>
+<li><strong>One-Click Audit Execution:</strong> Click <strong>&quot;Run Chaos Audit&quot;</strong> to execute all 6 failure mode test vectors in Apex runtime.</li>
+<li><strong>Interactive Scorecard &amp; Remediations:</strong> View real-time pass/fail status, severity tags, and remediation code recipes.</li>
+<li><strong>Circuit Breaker Monitor:</strong> Inspect active declarative rules loaded from <code>Agent_Chaos_Rule__mdt</code> and in-flight governor gate limits.</li>
+<li><strong>100% Zero-Credit Guarantee:</strong> Executes entirely in Apex with 0 Flex Credits consumed.</li>
+</ul>
+</li>
+</ol>
+<hr />
 <h3>Phase 6: Automated CI/CD Quality Gate (GitHub Actions)</h3>
 <p>Add continuous resilience testing to your repository by adding <code>.github/workflows/agentforce-chaos-ci.yml</code>:</p>
 <pre class="language-yaml"><code class="language-yaml">name: Agentforce Chaos Quality Gate
