@@ -3,7 +3,7 @@
         <!-- Top Status Banner & Badges -->
         <div slot="actions" class="slds-grid slds-grid_vertical-align-center slds-gutters_x-small">
             <span class="badge-zero-credit slds-badge slds-theme_success slds-m-right_small">
-                ⚡ 0 FLEX CREDITS CONSUMED (Offline Mode)
+                ⚡ 0 FLEX CREDITS CONSUMED (Free Offline Mode)
             </span>
             <span class="slds-badge slds-badge_lightest">
                 🛡️ Org Limit: SOQL 100 / CPU 10,000ms
@@ -11,34 +11,40 @@
         </div>
 
         <div class="slds-p-around_medium">
-            <!-- Spinner -->
-            <template if:true={isLoading}>
-                <div class="spinner-container">
-                    <lightning-spinner alternative-text="Executing in Apex runtime..." size="medium"></lightning-spinner>
+            <!-- In-Page Visual Alert Notification (Never gets hidden by browser) -->
+            <template if:true={bannerMessage}>
+                <div class={bannerClass} role="status">
+                    <span class="slds-assistive-text">{bannerType}</span>
+                    <div class="slds-notify__content">
+                        <h2 class="slds-text-heading_small font-bold">{bannerMessage}</h2>
+                    </div>
                 </div>
             </template>
 
             <!-- Main Tabset -->
             <lightning-tabset variant="scoped">
                 <!-- TAB 1: ACTION RELIABILITY AUDITOR -->
-                <lightning-tab label="Action Reliability Auditor (6 Vectors)" icon-name="utility:custom_apps">
+                <lightning-tab label="1. Action Safety Auditor (The 6 Tests)" icon-name="utility:custom_apps">
                     <!-- Action Selector Bar -->
                     <div class="slds-box slds-theme_shade slds-m-bottom_medium slds-m-top_small">
                         <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
                             <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
                                 <lightning-combobox
                                     name="targetAction"
-                                    label="Target Invocable Action / Flow"
+                                    label="Choose Invocable Action or Flow to Test"
                                     value={selectedAction}
-                                    placeholder="Select an Invocable Action or Flow to audit"
+                                    placeholder="Select an action to audit..."
                                     options={actionOptions}
                                     onchange={handleActionChange}>
                                 </lightning-combobox>
+                                <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                    Tests how this action handles missing fields, code crashes, runaway loops, and timeouts.
+                                </div>
                             </div>
                             <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
                                 <lightning-button
                                     variant="brand"
-                                    label="Run Chaos Audit"
+                                    label="⚡ Run Chaos Audit Now"
                                     icon-name="utility:thunder"
                                     onclick={handleRunAudit}
                                     disabled={isLoading}>
@@ -46,6 +52,17 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Live Running Progress Bar -->
+                    <template if:true={isLoading}>
+                        <div class="slds-box slds-theme_info slds-m-bottom_medium slds-p-around_medium">
+                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
+                                <lightning-icon icon-name="utility:spinner" size="small" class="slds-m-right_small"></lightning-icon>
+                                <span class="slds-text-heading_small font-bold">{currentTestStepText}</span>
+                            </div>
+                            <lightning-progress-bar value={testProgressPercent} size="large" variant="circular"></lightning-progress-bar>
+                        </div>
+                    </template>
 
                     <!-- Audit Report Summary Card -->
                     <template if:true={report}>
@@ -62,22 +79,22 @@
                                 </div>
 
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_center">
-                                    <div class="slds-text-heading_small slds-text-color_weak">FAILURE MODES CLEAN</div>
+                                    <div class="slds-text-heading_small slds-text-color_weak">SAFETY TESTS PASSED</div>
                                     <div class="slds-text-heading_medium font-bold slds-text-color_success">
-                                        {report.passedVectors} / {report.totalVectors} Vectors Clean
+                                        {report.passedVectors} of {report.totalVectors} Tests Clean
                                     </div>
                                     <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
-                                        Action: <b>{report.actionName}</b>
+                                        Target Action: <b>{report.actionName}</b>
                                     </div>
                                 </div>
 
                                 <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
-                                    <div class="slds-text-heading_small slds-text-color_weak">APEX RUNTIME LATENCY</div>
+                                    <div class="slds-text-heading_small slds-text-color_weak">EXECUTION TIME (APEX)</div>
                                     <div class="slds-text-heading_medium font-bold slds-text-color_inverse-weak">
                                         {report.totalDurationMs} ms
                                     </div>
                                     <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
-                                        Zero-Credit GenAI Tokens: 0
+                                        Cost: 0 GenAI Flex Credits
                                     </div>
                                 </div>
                             </div>
@@ -86,7 +103,7 @@
                         <!-- 6 Test Vectors Scorecard Details -->
                         <div class="slds-m-bottom_large">
                             <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">
-                                🎯 Reliability Vector Scorecard (6 Production Failure Modes)
+                                📋 Safety Test Results (Plain English Breakdown)
                             </h3>
                             
                             <div class="slds-grid slds-wrap slds-gutters">
@@ -100,16 +117,16 @@
                                                 </div>
                                                 <div class="slds-col slds-no-flex">
                                                     <template if:true={vec.passed}>
-                                                        <span class="slds-badge slds-theme_success">✓ PASSED</span>
+                                                        <span class="slds-badge slds-theme_success font-bold">✓ PASSED</span>
                                                     </template>
                                                     <template if:false={vec.passed}>
-                                                        <span class="slds-badge slds-theme_error">✕ FAILED</span>
+                                                        <span class="slds-badge slds-theme_error font-bold">✕ FAILED</span>
                                                     </template>
                                                 </div>
                                             </div>
                                             <p class="slds-text-body_regular slds-m-top_xx-small">{vec.details}</p>
                                             <div class="recipe-box slds-m-top_x-small">
-                                                <span class="recipe-label">Remediation Recipe:</span>
+                                                <span class="recipe-label">How to Fix in Salesforce:</span>
                                                 <span class="recipe-text">{vec.remediation}</span>
                                             </div>
                                         </div>
@@ -118,15 +135,30 @@
                             </div>
                         </div>
                     </template>
+
+                    <!-- Real-Time Activity Log / Terminal -->
+                    <div class="slds-m-top_medium">
+                        <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                            <span class="slds-text-title_bold">📟 Live Audit Activity Log (Apex Backend Events)</span>
+                            <button class="slds-button slds-button_icon slds-m-left_auto" title="Clear Log" onclick={handleClearLogs}>
+                                <lightning-icon icon-name="utility:clear" size="x-small"></lightning-icon>
+                            </button>
+                        </div>
+                        <div class="terminal-box">
+                            <template for:each={auditLogs} for:item="log">
+                                <div key={log.id} class="terminal-line">{log.text}</div>
+                            </template>
+                        </div>
+                    </div>
                 </lightning-tab>
 
-                <!-- TAB 2: SERVICE AGENT MULTI-TURN SIMULATOR -->
-                <lightning-tab label="Service Agent Chaos Simulator" icon-name="standard:service_crew_member">
+                <!-- TAB 2: SERVICE AGENT SIMULATOR -->
+                <lightning-tab label="2. Test Customer Support Agent Live" icon-name="standard:service_crew_member">
                     <div class="slds-m-top_small slds-m-bottom_medium">
-                        <!-- Agent Selector & Scenario Preset Buttons -->
+                        <!-- Quick Injection Bar -->
                         <div class="slds-box slds-theme_shade slds-m-bottom_medium">
                             <div class="slds-grid slds-gutters slds-grid_vertical-align-center slds-m-bottom_small">
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
                                     <lightning-combobox
                                         name="targetAgent"
                                         label="Active Service Agent"
@@ -135,13 +167,15 @@
                                         onchange={handleAgentChange}>
                                     </lightning-combobox>
                                 </div>
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-text-align_right">
-                                    <span class="slds-text-body_small slds-text-color_weak slds-m-right_small">Quick Chaos Injection:</span>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12 slds-text-align_right">
+                                    <div class="slds-text-body_small slds-text-color_weak slds-m-bottom_xx-small font-bold">
+                                        👉 Click to inject a real failure and see how the agent responds:
+                                    </div>
                                     <lightning-button-group>
-                                        <lightning-button label="⚡ DML Fault" onclick={handlePresetDml} title="Inject validation rule rollback"></lightning-button>
-                                        <lightning-button label="⏱️ 14s Timeout" onclick={handlePresetTimeout} title="Simulate MIAW socket cliff"></lightning-button>
-                                        <lightning-button label="🔄 ReAct Loop" onclick={handlePresetLoop} title="Simulate runaway tool loop"></lightning-button>
-                                        <lightning-button label="✓ Normal" onclick={handlePresetNormal} title="Clean customer request"></lightning-button>
+                                        <lightning-button label="⚡ Missing Required Field (Validation Error)" onclick={handlePresetDml} variant="neutral"></lightning-button>
+                                        <lightning-button label="⏱️ 14-Second Timeout (Too Slow)" onclick={handlePresetTimeout} variant="neutral"></lightning-button>
+                                        <lightning-button label="🔄 Runaway Infinite Loop" onclick={handlePresetLoop} variant="neutral"></lightning-button>
+                                        <lightning-button label="✓ Normal Success" onclick={handlePresetNormal} variant="neutral"></lightning-button>
                                     </lightning-button-group>
                                 </div>
                             </div>
@@ -151,16 +185,16 @@
                                 <div class="slds-col slds-grow">
                                     <lightning-input
                                         type="text"
-                                        label="Simulated Customer Message"
+                                        label="Customer Message"
                                         value={chatPrompt}
                                         onchange={handleChatPromptChange}
-                                        placeholder="Type a message or use quick chaos buttons above...">
+                                        placeholder="Type a message or click one of the quick test buttons above...">
                                     </lightning-input>
                                 </div>
                                 <div class="slds-col slds-no-flex">
                                     <lightning-button
                                         variant="brand"
-                                        label="Send to Agent"
+                                        label="Send Message"
                                         icon-name="utility:send"
                                         onclick={handleSendTurn}
                                         disabled={isLoading}>
@@ -169,83 +203,87 @@
                             </div>
                         </div>
 
-                        <!-- Live Turn Results / Chat Interaction -->
-                        <template if:true={agentTurnResult}>
-                            <div class="slds-grid slds-gutters slds-wrap">
-                                <!-- Left Column: Conversation Turn -->
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12">
-                                    <div class="slds-box slds-box_small slds-theme_default slds-m-bottom_small">
-                                        <div class="slds-m-bottom_small">
-                                            <span class="slds-badge slds-badge_lightest">👤 Customer Query</span>
-                                            <div class="chat-bubble chat-bubble_user slds-m-top_xx-small">
-                                                {agentTurnResult.userQuery}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="slds-badge slds-theme_info">🤖 Service Agent Response</span>
-                                            <div class="chat-bubble chat-bubble_agent slds-m-top_xx-small">
-                                                {agentTurnResult.agentResponse}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <!-- Live Conversation History Feed -->
+                        <div class="slds-m-bottom_medium">
+                            <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">
+                                💬 Conversation History &amp; Safety Checks
+                            </h3>
 
-                                <!-- Right Column: In-Flight Gate Telemetry -->
-                                <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
-                                    <div class="telemetry-card slds-box slds-box_small">
-                                        <div class="slds-text-heading_small font-bold slds-m-bottom_x-small">
-                                            🔬 Gate Telemetry &amp; Safety Audit
+                            <template for:each={conversationHistory} for:item="turn">
+                                <div key={turn.id} class="slds-box slds-box_small slds-theme_default slds-m-bottom_medium conversation-card">
+                                    <div class="slds-grid slds-gutters slds-wrap">
+                                        <!-- Left Side: Chat Messages -->
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12">
+                                            <div class="slds-m-bottom_small">
+                                                <span class="slds-badge slds-badge_lightest font-bold">👤 Customer</span>
+                                                <div class="chat-bubble chat-bubble_user slds-m-top_xx-small">
+                                                    {turn.userQuery}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="slds-badge slds-theme_info font-bold">🤖 Support Agent</span>
+                                                <div class="chat-bubble chat-bubble_agent slds-m-top_xx-small">
+                                                    {turn.agentResponse}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="slds-m-bottom_xx-small">
-                                            <b>Action Invoked:</b> <code>{agentTurnResult.actionCalled}</code>
-                                        </div>
-                                        <div class="slds-m-bottom_xx-small">
-                                            <b>Injected Chaos Fault:</b> 
-                                            <span class="slds-badge slds-badge_inverse slds-m-left_xx-small">{agentTurnResult.faultInjected}</span>
-                                        </div>
-                                        <div class="slds-m-bottom_xx-small">
-                                            <b>Turn Latency:</b> {agentTurnResult.durationSeconds}s
-                                            <template if:true={agentTurnResult.slaCompliant}>
-                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">MIAW SLA PASS (&lt;15s)</span>
-                                            </template>
-                                            <template if:false={agentTurnResult.slaCompliant}>
-                                                <span class="slds-badge slds-theme_warning slds-m-left_xx-small">MIAW SLA NEAR CLIFF (&gt;14s)</span>
-                                            </template>
-                                        </div>
-                                        <div class="slds-m-bottom_xx-small">
-                                            <b>Human Escalation:</b>
-                                            <template if:true={agentTurnResult.isEscalatedToHuman}>
-                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">✓ Live Queue Handoff Verified</span>
-                                            </template>
-                                            <template if:false={agentTurnResult.isEscalatedToHuman}>
-                                                <span class="slds-badge slds-badge_lightest slds-m-left_xx-small">Resolved Autonomously</span>
-                                            </template>
-                                        </div>
-                                        <div>
-                                            <b>Hallucination Check:</b>
-                                            <template if:true={agentTurnResult.isHallucinationClean}>
-                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">✓ CLEAN (0 Fabricated IDs)</span>
-                                            </template>
+
+                                        <!-- Right Side: Behind-the-Scenes Safety Checks -->
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
+                                            <div class="telemetry-card slds-box slds-box_x-small">
+                                                <div class="slds-text-title_bold slds-m-bottom_xx-small slds-border_bottom slds-p-bottom_xx-small">
+                                                    🔍 What Happened Behind the Scenes:
+                                                </div>
+                                                <div class="slds-m-bottom_xx-small">
+                                                    <b>Action Called:</b> <code>{turn.actionCalled}</code>
+                                                </div>
+                                                <div class="slds-m-bottom_xx-small">
+                                                    <b>Simulated Issue:</b>
+                                                    <span class="slds-badge slds-badge_inverse slds-m-left_xx-small">{turn.faultInjected}</span>
+                                                </div>
+                                                <div class="slds-m-bottom_xx-small">
+                                                    <b>Response Time:</b> {turn.durationSeconds}s
+                                                    <template if:true={turn.slaCompliant}>
+                                                        <span class="slds-badge slds-theme_success slds-m-left_xx-small font-bold">✓ Under 15s limit</span>
+                                                    </template>
+                                                    <template if:false={turn.slaCompliant}>
+                                                        <span class="slds-badge slds-theme_error slds-m-left_xx-small font-bold">⚠️ Warning: &gt; 14s (Too Slow)</span>
+                                                    </template>
+                                                </div>
+                                                <div class="slds-m-bottom_xx-small">
+                                                    <b>Human Hand-off:</b>
+                                                    <template if:true={turn.isEscalatedToHuman}>
+                                                        <span class="slds-badge slds-theme_success slds-m-left_xx-small font-bold">✓ Transferred to Human Agent</span>
+                                                    </template>
+                                                    <template if:false={turn.isEscalatedToHuman}>
+                                                        <span class="slds-badge slds-badge_lightest slds-m-left_xx-small">Handled by AI Agent</span>
+                                                    </template>
+                                                </div>
+                                                <div>
+                                                    <b>Made Up Fake Info?:</b>
+                                                    <span class="slds-badge slds-theme_success slds-m-left_xx-small font-bold">✓ NO (Clean / Honest)</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </div>
                 </lightning-tab>
             </lightning-tabset>
 
-            <!-- Active Declarative Rules & Circuit Breakers (Always Visible at Bottom) -->
+            <!-- Bottom Table: Active Automatic Safety Rules in Org -->
             <div class="slds-m-top_large">
                 <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
                     <div class="slds-col slds-grow">
                         <h3 class="slds-text-heading_small font-bold">
-                            🛡️ Active In-Flight Circuit Breakers &amp; Custom Metadata Rules
+                            🛡️ Active Automatic Safety Rules (In Org Configuration)
                         </h3>
                     </div>
                     <div class="slds-col slds-no-flex">
                         <span class="slds-text-body_small slds-text-color_weak">
-                            Managed in <b>Agent_Chaos_Rule__mdt</b>
+                            Stored in Salesforce Custom Metadata: <b>Agent_Chaos_Rule__mdt</b>
                         </span>
                     </div>
                 </div>
@@ -253,11 +291,11 @@
                 <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered">
                     <thead>
                         <tr class="slds-line-height_reset">
-                            <th scope="col"><div class="slds-truncate">Rule Name</div></th>
-                            <th scope="col"><div class="slds-truncate">Target Action</div></th>
-                            <th scope="col"><div class="slds-truncate">Fault / Guard Type</div></th>
+                            <th scope="col"><div class="slds-truncate">Safety Rule</div></th>
+                            <th scope="col"><div class="slds-truncate">Protected Action</div></th>
+                            <th scope="col"><div class="slds-truncate">What It Does in Simple Terms</div></th>
                             <th scope="col"><div class="slds-truncate">Status</div></th>
-                            <th scope="col"><div class="slds-truncate">Description / Error Message</div></th>
+                            <th scope="col"><div class="slds-truncate">Rule Details</div></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -269,18 +307,18 @@
                                 <td data-label="Target Action">
                                     <div class="slds-truncate"><code>{r.actionName}</code></div>
                                 </td>
-                                <td data-label="Fault / Guard Type">
+                                <td data-label="Explanation">
                                     <div class="slds-truncate">{r.faultType}</div>
                                 </td>
                                 <td data-label="Status">
                                     <template if:true={r.isActive}>
-                                        <span class="slds-badge slds-theme_success">ACTIVE</span>
+                                        <span class="slds-badge slds-theme_success font-bold">ACTIVE</span>
                                     </template>
                                     <template if:false={r.isActive}>
-                                        <span class="slds-badge slds-badge_lightest">DISABLED</span>
+                                        <span class="slds-badge slds-badge_lightest">OFF</span>
                                     </template>
                                 </td>
-                                <td data-label="Description">
+                                <td data-label="Details">
                                     <div class="slds-truncate">{r.errorMessage}</div>
                                 </td>
                             </tr>
@@ -289,9 +327,9 @@
                 </table>
             </div>
 
-            <!-- Footer Documentation Hint -->
+            <!-- Footer -->
             <div class="slds-m-top_large slds-p-top_medium slds-border_top slds-text-align_center slds-text-color_weak slds-text-body_small">
-                AgentChaos Studio v0.1 • 100% Native Salesforce Agentforce Tooling • No External Servers or Credits Consumed
+                AgentChaos Studio • 100% Native Salesforce Agentforce Tooling • No External Servers or Credits Consumed
             </div>
         </div>
     </lightning-card>

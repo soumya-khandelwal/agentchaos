@@ -3,6 +3,16 @@
     min-height: 80px;
 }
 
+.banner-anim {
+    border-radius: 6px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .scorecard-hero {
     background: linear-gradient(135deg, #0b1528 0%, #172846 100%);
     border: 1px solid #1e3a8a;
@@ -58,6 +68,12 @@
 }
 
 /* Chat Simulator Styling */
+.conversation-card {
+    border-left: 4px solid #3b82f6;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
 .chat-bubble {
     border-radius: 8px;
     padding: 0.75rem 1rem;
@@ -82,6 +98,24 @@
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     line-height: 1.6;
+}
+
+/* Live Terminal Log Styling */
+.terminal-box {
+    background-color: #0f172a;
+    color: #38bdf8;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.8rem;
+    max-height: 180px;
+    overflow-y: auto;
+    border: 1px solid #334155;
+}
+
+.terminal-line {
+    padding: 2px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
