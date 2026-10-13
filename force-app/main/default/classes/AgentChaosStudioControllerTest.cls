@@ -49,4 +49,49 @@ private class AgentChaosStudioControllerTest {
         Assert.isNotNull(report);
         Assert.areEqual('Create_Support_Case_Chaos', report.actionName);
     }
+
+    @isTest
+    static void testGetAvailableAgents() {
+        Test.startTest();
+        List<AgentChaosStudioController.AgentOptionDTO> agents = AgentChaosStudioController.getAvailableAgents();
+        Test.stopTest();
+
+        Assert.isNotNull(agents);
+        Assert.isTrue(!agents.isEmpty(), 'Should return at least one agent');
+    }
+
+    @isTest
+    static void testSimulateAgentTurnVariants() {
+        Test.startTest();
+        // 1. Normal turn
+        AgentChaosStudioController.AgentTurnResultDTO normalTurn = AgentChaosStudioController.simulateAgentTurn(
+            'Customer_Support_Agent',
+            'Hello, open a case for my parcel: customer@example.com'
+        );
+        Assert.isTrue(normalTurn.actionSucceeded);
+        Assert.isTrue(normalTurn.isHallucinationClean);
+
+        // 2. DML rollback chaos directive
+        AgentChaosStudioController.AgentTurnResultDTO dmlTurn = AgentChaosStudioController.simulateAgentTurn(
+            'Customer_Support_Agent',
+            'I need to report another broken item. Email: chaos-dml@test.com'
+        );
+        Assert.isFalse(dmlTurn.actionSucceeded);
+        Assert.isTrue(dmlTurn.isEscalatedToHuman);
+
+        // 3. Timeout directive
+        AgentChaosStudioController.AgentTurnResultDTO timeoutTurn = AgentChaosStudioController.simulateAgentTurn(
+            'Customer_Support_Agent',
+            'Package was delayed. [CHAOS_DELAY_14S]'
+        );
+        Assert.isFalse(timeoutTurn.slaCompliant);
+
+        // 4. ReAct loop directive
+        AgentChaosStudioController.AgentTurnResultDTO loopTurn = AgentChaosStudioController.simulateAgentTurn(
+            'Customer_Support_Agent',
+            'Keep retrying: retry-fail@test.com'
+        );
+        Assert.isTrue(loopTurn.isEscalatedToHuman);
+        Test.stopTest();
+    }
 }

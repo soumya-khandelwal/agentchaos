@@ -14,113 +14,233 @@
             <!-- Spinner -->
             <template if:true={isLoading}>
                 <div class="spinner-container">
-                    <lightning-spinner alternative-text="Auditing Invocable Action..." size="medium"></lightning-spinner>
+                    <lightning-spinner alternative-text="Executing in Apex runtime..." size="medium"></lightning-spinner>
                 </div>
             </template>
 
-            <!-- Action Selector Bar -->
-            <div class="slds-box slds-theme_shade slds-m-bottom_medium">
-                <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
-                        <lightning-combobox
-                            name="targetAction"
-                            label="Target Invocable Action / Flow"
-                            value={selectedAction}
-                            placeholder="Select an Invocable Action or Flow to audit"
-                            options={actionOptions}
-                            onchange={handleActionChange}>
-                        </lightning-combobox>
-                    </div>
-                    <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
-                        <lightning-button
-                            variant="brand"
-                            label="Run Chaos Audit"
-                            icon-name="utility:thunder"
-                            onclick={handleRunAudit}
-                            disabled={isLoading}>
-                        </lightning-button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Audit Report Summary Card -->
-            <template if:true={report}>
-                <div class="scorecard-hero slds-box slds-m-bottom_medium">
-                    <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
-                            <div class="slds-text-heading_small slds-text-color_weak">READINESS SCORE</div>
-                            <div class="slds-text-heading_large font-bold">
-                                <span class={scoreColorClass}>{report.overallScore}%</span>
+            <!-- Main Tabset -->
+            <lightning-tabset variant="scoped">
+                <!-- TAB 1: ACTION RELIABILITY AUDITOR -->
+                <lightning-tab label="Action Reliability Auditor (6 Vectors)" icon-name="utility:custom_apps">
+                    <!-- Action Selector Bar -->
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium slds-m-top_small">
+                        <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
+                                <lightning-combobox
+                                    name="targetAction"
+                                    label="Target Invocable Action / Flow"
+                                    value={selectedAction}
+                                    placeholder="Select an Invocable Action or Flow to audit"
+                                    options={actionOptions}
+                                    onchange={handleActionChange}>
+                                </lightning-combobox>
                             </div>
-                            <div class="slds-m-top_xx-small">
-                                <span class={verdictBadgeClass}>{verdictText}</span>
-                            </div>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_center">
-                            <div class="slds-text-heading_small slds-text-color_weak">FAILURE MODES CLEAN</div>
-                            <div class="slds-text-heading_medium font-bold slds-text-color_success">
-                                {report.passedVectors} / {report.totalVectors} Vectors Clean
-                            </div>
-                            <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
-                                Action: <b>{report.actionName}</b>
-                            </div>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
-                            <div class="slds-text-heading_small slds-text-color_weak">APEX RUNTIME LATENCY</div>
-                            <div class="slds-text-heading_medium font-bold slds-text-color_inverse-weak">
-                                {report.totalDurationMs} ms
-                            </div>
-                            <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
-                                Zero-Credit GenAI Tokens: 0
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
+                                <lightning-button
+                                    variant="brand"
+                                    label="Run Chaos Audit"
+                                    icon-name="utility:thunder"
+                                    onclick={handleRunAudit}
+                                    disabled={isLoading}>
+                                </lightning-button>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- 6 Test Vectors Scorecard Details -->
-                <div class="slds-m-bottom_large">
-                    <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">
-                        🎯 Reliability Vector Scorecard (6 Production Failure Modes)
-                    </h3>
-                    
-                    <div class="slds-grid slds-wrap slds-gutters">
-                        <template for:each={report.results} for:item="vec">
-                            <div key={vec.id} class="slds-col slds-size_1-of-1 slds-m-bottom_small">
-                                <div class="vector-card slds-box slds-box_x-small">
-                                    <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
-                                        <div class="slds-col slds-grow">
-                                            <span class="vector-title">{vec.name}</span>
-                                            <span class="slds-badge slds-m-left_small slds-badge_inverse">{vec.severity}</span>
-                                        </div>
-                                        <div class="slds-col slds-no-flex">
-                                            <template if:true={vec.passed}>
-                                                <span class="slds-badge slds-theme_success">✓ PASSED</span>
-                                            </template>
-                                            <template if:false={vec.passed}>
-                                                <span class="slds-badge slds-theme_error">✕ FAILED</span>
-                                            </template>
+                    <!-- Audit Report Summary Card -->
+                    <template if:true={report}>
+                        <div class="scorecard-hero slds-box slds-m-bottom_medium">
+                            <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12">
+                                    <div class="slds-text-heading_small slds-text-color_weak">READINESS SCORE</div>
+                                    <div class="slds-text-heading_large font-bold">
+                                        <span class={scoreColorClass}>{report.overallScore}%</span>
+                                    </div>
+                                    <div class="slds-m-top_xx-small">
+                                        <span class={verdictBadgeClass}>{verdictText}</span>
+                                    </div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_center">
+                                    <div class="slds-text-heading_small slds-text-color_weak">FAILURE MODES CLEAN</div>
+                                    <div class="slds-text-heading_medium font-bold slds-text-color_success">
+                                        {report.passedVectors} / {report.totalVectors} Vectors Clean
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                        Action: <b>{report.actionName}</b>
+                                    </div>
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
+                                    <div class="slds-text-heading_small slds-text-color_weak">APEX RUNTIME LATENCY</div>
+                                    <div class="slds-text-heading_medium font-bold slds-text-color_inverse-weak">
+                                        {report.totalDurationMs} ms
+                                    </div>
+                                    <div class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                                        Zero-Credit GenAI Tokens: 0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6 Test Vectors Scorecard Details -->
+                        <div class="slds-m-bottom_large">
+                            <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">
+                                🎯 Reliability Vector Scorecard (6 Production Failure Modes)
+                            </h3>
+                            
+                            <div class="slds-grid slds-wrap slds-gutters">
+                                <template for:each={report.results} for:item="vec">
+                                    <div key={vec.id} class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                        <div class="vector-card slds-box slds-box_x-small">
+                                            <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_xx-small">
+                                                <div class="slds-col slds-grow">
+                                                    <span class="vector-title">{vec.name}</span>
+                                                    <span class="slds-badge slds-m-left_small slds-badge_inverse">{vec.severity}</span>
+                                                </div>
+                                                <div class="slds-col slds-no-flex">
+                                                    <template if:true={vec.passed}>
+                                                        <span class="slds-badge slds-theme_success">✓ PASSED</span>
+                                                    </template>
+                                                    <template if:false={vec.passed}>
+                                                        <span class="slds-badge slds-theme_error">✕ FAILED</span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <p class="slds-text-body_regular slds-m-top_xx-small">{vec.details}</p>
+                                            <div class="recipe-box slds-m-top_x-small">
+                                                <span class="recipe-label">Remediation Recipe:</span>
+                                                <span class="recipe-text">{vec.remediation}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="slds-text-body_regular slds-m-top_xx-small">{vec.details}</p>
-                                    <div class="recipe-box slds-m-top_x-small">
-                                        <span class="recipe-label">Remediation Recipe:</span>
-                                        <span class="recipe-text">{vec.remediation}</span>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </lightning-tab>
+
+                <!-- TAB 2: SERVICE AGENT MULTI-TURN SIMULATOR -->
+                <lightning-tab label="Service Agent Chaos Simulator" icon-name="standard:service_crew_member">
+                    <div class="slds-m-top_small slds-m-bottom_medium">
+                        <!-- Agent Selector & Scenario Preset Buttons -->
+                        <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                            <div class="slds-grid slds-gutters slds-grid_vertical-align-center slds-m-bottom_small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                                    <lightning-combobox
+                                        name="targetAgent"
+                                        label="Active Service Agent"
+                                        value={selectedAgent}
+                                        options={agentOptions}
+                                        onchange={handleAgentChange}>
+                                    </lightning-combobox>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-text-align_right">
+                                    <span class="slds-text-body_small slds-text-color_weak slds-m-right_small">Quick Chaos Injection:</span>
+                                    <lightning-button-group>
+                                        <lightning-button label="⚡ DML Fault" onclick={handlePresetDml} title="Inject validation rule rollback"></lightning-button>
+                                        <lightning-button label="⏱️ 14s Timeout" onclick={handlePresetTimeout} title="Simulate MIAW socket cliff"></lightning-button>
+                                        <lightning-button label="🔄 ReAct Loop" onclick={handlePresetLoop} title="Simulate runaway tool loop"></lightning-button>
+                                        <lightning-button label="✓ Normal" onclick={handlePresetNormal} title="Clean customer request"></lightning-button>
+                                    </lightning-button-group>
+                                </div>
+                            </div>
+
+                            <!-- User Input Bar -->
+                            <div class="slds-grid slds-gutters slds-grid_vertical-align-end">
+                                <div class="slds-col slds-grow">
+                                    <lightning-input
+                                        type="text"
+                                        label="Simulated Customer Message"
+                                        value={chatPrompt}
+                                        onchange={handleChatPromptChange}
+                                        placeholder="Type a message or use quick chaos buttons above...">
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-no-flex">
+                                    <lightning-button
+                                        variant="brand"
+                                        label="Send to Agent"
+                                        icon-name="utility:send"
+                                        onclick={handleSendTurn}
+                                        disabled={isLoading}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Turn Results / Chat Interaction -->
+                        <template if:true={agentTurnResult}>
+                            <div class="slds-grid slds-gutters slds-wrap">
+                                <!-- Left Column: Conversation Turn -->
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_7-of-12">
+                                    <div class="slds-box slds-box_small slds-theme_default slds-m-bottom_small">
+                                        <div class="slds-m-bottom_small">
+                                            <span class="slds-badge slds-badge_lightest">👤 Customer Query</span>
+                                            <div class="chat-bubble chat-bubble_user slds-m-top_xx-small">
+                                                {agentTurnResult.userQuery}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="slds-badge slds-theme_info">🤖 Service Agent Response</span>
+                                            <div class="chat-bubble chat-bubble_agent slds-m-top_xx-small">
+                                                {agentTurnResult.agentResponse}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: In-Flight Gate Telemetry -->
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
+                                    <div class="telemetry-card slds-box slds-box_small">
+                                        <div class="slds-text-heading_small font-bold slds-m-bottom_x-small">
+                                            🔬 Gate Telemetry &amp; Safety Audit
+                                        </div>
+                                        <div class="slds-m-bottom_xx-small">
+                                            <b>Action Invoked:</b> <code>{agentTurnResult.actionCalled}</code>
+                                        </div>
+                                        <div class="slds-m-bottom_xx-small">
+                                            <b>Injected Chaos Fault:</b> 
+                                            <span class="slds-badge slds-badge_inverse slds-m-left_xx-small">{agentTurnResult.faultInjected}</span>
+                                        </div>
+                                        <div class="slds-m-bottom_xx-small">
+                                            <b>Turn Latency:</b> {agentTurnResult.durationSeconds}s
+                                            <template if:true={agentTurnResult.slaCompliant}>
+                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">MIAW SLA PASS (&lt;15s)</span>
+                                            </template>
+                                            <template if:false={agentTurnResult.slaCompliant}>
+                                                <span class="slds-badge slds-theme_warning slds-m-left_xx-small">MIAW SLA NEAR CLIFF (&gt;14s)</span>
+                                            </template>
+                                        </div>
+                                        <div class="slds-m-bottom_xx-small">
+                                            <b>Human Escalation:</b>
+                                            <template if:true={agentTurnResult.isEscalatedToHuman}>
+                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">✓ Live Queue Handoff Verified</span>
+                                            </template>
+                                            <template if:false={agentTurnResult.isEscalatedToHuman}>
+                                                <span class="slds-badge slds-badge_lightest slds-m-left_xx-small">Resolved Autonomously</span>
+                                            </template>
+                                        </div>
+                                        <div>
+                                            <b>Hallucination Check:</b>
+                                            <template if:true={agentTurnResult.isHallucinationClean}>
+                                                <span class="slds-badge slds-theme_success slds-m-left_xx-small">✓ CLEAN (0 Fabricated IDs)</span>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </template>
                     </div>
-                </div>
-            </template>
+                </lightning-tab>
+            </lightning-tabset>
 
-            <!-- Active Declarative Rules & Circuit Breakers -->
-            <div class="slds-m-top_medium">
+            <!-- Active Declarative Rules & Circuit Breakers (Always Visible at Bottom) -->
+            <div class="slds-m-top_large">
                 <div class="slds-grid slds-grid_vertical-align-center slds-m-bottom_small">
                     <div class="slds-col slds-grow">
                         <h3 class="slds-text-heading_small font-bold">
-                            🛡️ In-Flight Circuit Breakers & Custom Metadata Rules
+                            🛡️ Active In-Flight Circuit Breakers &amp; Custom Metadata Rules
                         </h3>
                     </div>
                     <div class="slds-col slds-no-flex">

@@ -56,3 +56,32 @@
     font-weight: 600;
     letter-spacing: 0.025em;
 }
+
+/* Chat Simulator Styling */
+.chat-bubble {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.chat-bubble_user {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    border-left: 4px solid #64748b;
+}
+
+.chat-bubble_agent {
+    background-color: #eff6ff;
+    color: #1e3a8a;
+    border-left: 4px solid #2563eb;
+    font-weight: 500;
+}
+
+.telemetry-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+}
