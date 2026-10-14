@@ -36,8 +36,23 @@ private class AgentChaosStudioControllerTest {
         Assert.isTrue(report.isZeroCredit, 'Must be zero credit mode');
         Assert.areEqual(0, report.flexCreditsConsumed, 'Must consume 0 Flex Credits');
         Assert.areEqual(6, report.totalVectors, 'Must audit all 6 failure mode test vectors');
-        Assert.isTrue(report.results.size() == 6, 'Must have 6 result items');
         Assert.isNotNull(report.overallScore, 'Overall score must be calculated');
+    }
+
+    @isTest
+    static void testRunActionAuditWithAuditReport() {
+        Test.startTest();
+        AgentChaosStudioController.AuditReport report = AgentChaosStudioController.runActionAudit('CaseSupportHandler');
+        Test.stopTest();
+
+        Assert.isNotNull(report, 'Audit report should not be null');
+        Assert.isTrue(report.isResilient, 'Should be resilient');
+        Assert.isTrue(report.resilienceScore >= 80, 'Score should be high');
+        Assert.isTrue(report.vectorResults.size() == 6, 'Must have 6 vector results');
+        for (AgentChaosStudioController.VectorResultDTO v : report.results) {
+            Assert.isNotNull(v.status);
+            Assert.isNotNull(v.summary);
+        }
     }
 
     @isTest

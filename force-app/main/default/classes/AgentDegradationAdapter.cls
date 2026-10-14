@@ -42,6 +42,7 @@ global with sharing class AgentDegradationAdapter {
         res.actionName = actionName;
         res.errorCode = errorCode;
         res.errorMessage = reason;
+        res.outputMessage = reason;
         return res;
     }
 }

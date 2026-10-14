@@ -20,6 +20,7 @@ export default class AgentChaosStudio extends LightningElement {
     @track bannerClass = '';
     @track bannerType = '';
     @track auditLogs = [];
+    @track showTechnicalLogs = false;
 
     // Service Agent Multi-Turn Simulator State
     @track agentOptions = [];
@@ -228,6 +229,18 @@ export default class AgentChaosStudio extends LightningElement {
     handleClearLogs() {
         this.auditLogs = [];
         this.addLog('Log cleared.');
+    }
+
+    handleToggleLogs() {
+        this.showTechnicalLogs = !this.showTechnicalLogs;
+    }
+
+    get logToggleLabel() {
+        return this.showTechnicalLogs ? '▼ Hide Technical Activity Logs' : '▶ Show Technical Activity Logs';
+    }
+
+    get logToggleIcon() {
+        return this.showTechnicalLogs ? 'utility:chevrondown' : 'utility:chevronright';
     }
 
     addLog(text) {

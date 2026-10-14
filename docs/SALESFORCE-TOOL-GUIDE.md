@@ -97,56 +97,50 @@ agent-chaos/
    ```
    https://orgfarm-ed4622b471-dev-ed.develop.my.salesforce.com/lightning/n/AgentChaos_Studio
    ```
-2. You will see the **Agentforce Resilience & Chaos Studio** dashboard with three tabs:
-   - **Tab 1: Action Chaos Audit**
-   - **Tab 2: Agent Chat Simulator**
-   - **Tab 3: Rules & Configuration**
+2. You will see the **Agentforce Safety Studio** with three clean tabs:
+   - **Tab 1: 1. Test an Action**
+   - **Tab 2: 2. Live Agent Simulator**
+   - **Tab 3: 3. Safety Rules**
 
 ---
 
-### Step 2: Verify the Action Audit (Tab 1)
-1. Select the action dropdown: **Create Support Case (`CaseSupportHandler`)**.
-2. Click the **⚡ Run Chaos Audit Now** button.
-3. **What You Will See Live:**
-   - An animated green progress bar moving across the screen (`0% -> 40% -> 75% -> 100%`).
-   - A live **Audit Terminal Log Console** printing timestamped logs:
-     ```
-     [11:55:00] Initializing Action Chaos Audit for CaseSupportHandler...
-     [11:55:01] ⚡ Vector 1: Injected FIELD_CUSTOM_VALIDATION_EXCEPTION (DML Failure) -> Verified!
-     [11:55:01] ⚡ Vector 2: Injected Null/Blank payload fuzzing -> Verified!
-     [11:55:01] ⚡ Vector 3: Injected Empty Data Cloud grounding -> Verified!
-     [11:55:01] ⚡ Vector 4: Injected 3 rapid-fire identical action calls -> Loop Breaker tripped!
-     [11:55:01] ⚡ Vector 5: Measured execution latency (12ms) -> Safe under 15s limit!
-     [11:55:01] ✅ Audit Completed: 5/5 Vectors Passed. Agent Action is Resilient.
-     ```
-   - An in-page **Success Notification Banner** confirming completion.
-   - A **5 / 5 Passing** Resilience Score card.
-   - 5 expandable test result cards detailing each vector with status badges (**PASS**).
+### Step 2: Test an Action (Tab 1)
+1. In **Tab 1: 1. Test an Action**, select an action (e.g. `Create Support Case`).
+2. Click **⚡ Run Safety Test**.
+3. **What You Will See:**
+   - A smooth progress bar running through the safety checks.
+   - A clean summary banner:
+     ✅ **All 6 Safety Checks Passed** (Action is resilient and safe to deploy).
+   - Six bite-sized cards explaining each check in plain English:
+     - 🛡️ **Validation Rule & Save Error:** Agent handles save errors honestly without faking success.
+     - ❓ **Slot-Filling Fuzz & Null Safety:** Agent asks for missing info instead of crashing with NPE.
+     - 👤 **AgentUser Permission Guard:** Gracefully shields permission faults and offers human hand-off.
+     - ⚡ **ReAct Loop Breaker:** Fuse automatically trips on 4th repeated tool call.
+     - ⏱️ **Front-End Latency Budget:** Response completes within safe CPU limits (~14ms).
+     - 🔍 **Data Cloud Grounding:** Empty search results handled without making up fake facts.
+   - An optional collapsed link **▶ Show Technical Activity Logs** if you wish to inspect raw backend Apex timestamps.
 
 ---
 
-### Step 3: Verify the Chat Simulator (Tab 2)
-1. Click on **Tab 2: Agent Chat Simulator**.
-2. Click any of the quick test pill buttons at the top:
-   - **"📦 Create Case: Damaged package"** (Happy Path)
-   - **"⚡ Test Loop Breaker"** (Chaos: Repeated Calls)
-   - **"❓ Blank Input Test"** (Chaos: Missing Fields)
-   - **"🚫 Test Save Failure"** (Chaos: Validation Rule Error)
-3. **What You Will See Live:**
-   - The message is posted to the **Live Conversation History** feed on the right.
-   - The agent responds instantly with an honest, customer-friendly message.
-   - An expandable **Safety & Resilience Check** card appears under the message detailing:
-     - **Status:** Handled Safely / Tripped Fuse
-     - **Latency:** Execution time in milliseconds (e.g., `18 ms`)
-     - **Loop Breaker:** Safety stop status
-     - **Database Record:** Real Case Number or safe rollback confirmation
+### Step 3: Try the Simulator (Tab 2)
+1. Click on **Tab 2: 2. Live Agent Simulator**.
+2. Click any of the 3 quick scenario buttons:
+   - **📦 Normal Support Request:** Creates a test case cleanly.
+   - **⚡ Test Runaway Loop:** Tests how the agent stops after 3 repetitive calls.
+   - **❓ Missing Required Info:** Tests how the agent asks for missing details.
+3. **What You Will See:**
+   - A familiar chat interface with your message on the right (blue) and the agent's response on the left.
+   - Under the agent's message, a clean status pill:
+     `Action: Create_Support_Case_Chaos • Response Time: 1.25s` (or `👤 Escalated to Human Agent`).
 
 ---
 
-### Step 4: Verify Rules & Configuration (Tab 3)
-1. Click on **Tab 3: Rules & Configuration**.
-2. Inspect the active Custom Metadata rules configured in your Salesforce org.
-3. Observe how each fault type is mapped to specific action names with custom error messages and delays.
+### Step 4: Inspect Safety Rules (Tab 3)
+1. Click on **Tab 3: 3. Safety Rules**.
+2. You will see clean cards showing all active safety protections in your org:
+   - **ReAct Loop Breaker:** Limits repeated calls per turn to 3 to prevent governor limit crashes. (🟢 **ACTIVE**)
+   - Custom fault rules configured in `Agent_Chaos_Rule__mdt`.
+3. To customize or add rules, navigate to **Setup → Custom Code → Custom Metadata Types → Agent Chaos Rule**.
 
 ---
 
@@ -157,26 +151,30 @@ agent-chaos/
 Open Developer Console (`Debug` > `Open Execute Anonymous Window`) and paste:
 
 ```apex
-// 1. Run the 5-vector audit directly via Apex
+// 1. Run the action reliability audit directly in Apex
 AgentChaosStudioController.AuditReport report = 
     AgentChaosStudioController.runActionAudit('CaseSupportHandler');
 
 System.debug('=== CHAOS AUDIT REPORT ===');
 System.debug('Overall Resilient: ' + report.isResilient);
 System.debug('Score: ' + report.resilienceScore + ' / ' + report.totalVectors);
-for (AgentChaosStudioController.AuditVectorResult v : report.vectorResults) {
-    System.debug(v.vectorName + ': ' + v.status + ' - ' + v.summary);
+for (AgentChaosStudioController.VectorResultDTO v : report.results) {
+    System.debug(v.name + ': ' + v.status + ' - ' + v.summary);
 }
+```
 
-// 2. Test the Universal Gateway with Loop Breaker Protection
-AgentActionGateway.GatewayRequest req = new AgentActionGateway.GatewayRequest();
-req.actionName = 'CaseSupportHandler';
-req.actionParametersJson = '{"subject":"Test Case","priority":"High","description":"Testing Gateway"}';
-req.agentSessionId = 'test-session-' + System.currentTimeMillis();
-
-// Simulate rapid calls to test loop breaking
-List<AgentActionGateway.GatewayResponse> resps = 
-    AgentActionGateway.executeActions(new List<AgentActionGateway.GatewayRequest>{req});
+**Expected Log Output:**
+```
+USER_DEBUG|[3]|DEBUG|=== CHAOS AUDIT REPORT ===
+USER_DEBUG|[4]|DEBUG|Overall Resilient: true
+USER_DEBUG|[5]|DEBUG|Score: 100 / 6
+USER_DEBUG|[7]|DEBUG|Validation Rule & DML Rollback Blindness: PASS - Action handled validation rule rollback gracefully and prompted for required fields.
+USER_DEBUG|[7]|DEBUG|Slot-Filling Fuzz & Null Safety: PASS - Action handled null arguments without throwing System.NullPointerException.
+USER_DEBUG|[7]|DEBUG|AgentUser Permission & Flow Shielding: PASS - Action shielded permission fault gracefully and triggered live human escalation fallback.
+USER_DEBUG|[7]|DEBUG|ReAct Loop Breaker & Governor Guard: PASS - Circuit breaker tripped on 4th call, halting runaway token burn and SOQL 101 limit breach.
+USER_DEBUG|[7]|DEBUG|Governor CPU & Front-End Latency Budget: PASS - Current transaction CPU time: 14ms (Limit: 10000ms). Synchronous execution within safe budget.
+USER_DEBUG|[7]|DEBUG|Data Cloud Grounding & RAG Retrieval: PASS - Empty vector context handled safely without fabricating ungrounded entity IDs or claims.
+```
 
 System.debug('Gateway Result: ' + resps[0].isSuccess);
 System.debug('Gateway Message: ' + resps[0].responseMessage);

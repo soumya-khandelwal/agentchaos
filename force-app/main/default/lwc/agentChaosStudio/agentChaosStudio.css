@@ -1,6 +1,5 @@
-.spinner-container {
-    position: relative;
-    min-height: 80px;
+.font-bold {
+    font-weight: 700;
 }
 
 .banner-anim {
@@ -13,109 +12,108 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-.scorecard-hero {
-    background: linear-gradient(135deg, #0b1528 0%, #172846 100%);
-    border: 1px solid #1e3a8a;
+/* Result Summary Box */
+.result-summary-box {
     border-radius: 8px;
-    padding: 1.5rem;
-    color: #f8fafc;
+    border-left: 6px solid #2e844a;
+    background: #fbfdfb;
 }
 
-.font-bold {
-    font-weight: 700;
+.status-icon {
+    font-size: 2rem;
+    line-height: 1;
 }
 
-.vector-card {
-    border-left: 4px solid #2563eb;
-    background-color: #ffffff;
-    border-radius: 4px;
-    transition: box-shadow 0.2s ease;
+/* 6-Check Cards */
+.clean-check-card {
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #0070d2;
+    transition: all 0.2s ease;
 }
 
-.vector-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+.clean-check-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
 }
 
-.vector-title {
-    font-size: 1rem;
-    font-weight: 600;
+.check-title {
+    font-size: 0.95rem;
     color: #1e293b;
 }
 
-.recipe-box {
-    background-color: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 4px;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.825rem;
-    color: #475569;
+/* Chat Simulator */
+.chat-row {
+    margin-bottom: 1.25rem;
 }
 
-.recipe-label {
-    font-weight: 600;
-    color: #0f172a;
-    margin-right: 0.5rem;
-}
-
-.recipe-text {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    color: #2563eb;
-}
-
-.badge-zero-credit {
-    font-weight: 600;
-    letter-spacing: 0.025em;
-}
-
-/* Chat Simulator Styling */
-.conversation-card {
-    border-left: 4px solid #3b82f6;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+.chat-bubble-container {
+    width: 100%;
 }
 
 .chat-bubble {
-    border-radius: 8px;
+    max-width: 80%;
     padding: 0.75rem 1rem;
-    font-size: 0.95rem;
+    border-radius: 12px;
+    font-size: 0.925rem;
     line-height: 1.4;
 }
 
-.chat-bubble_user {
-    background-color: #f1f5f9;
-    color: #1e293b;
-    border-left: 4px solid #64748b;
+.user-bubble {
+    background-color: #0070d2;
+    color: #ffffff;
+    border-bottom-right-radius: 2px;
 }
 
-.chat-bubble_agent {
-    background-color: #eff6ff;
-    color: #1e3a8a;
-    border-left: 4px solid #2563eb;
-    font-weight: 500;
+.user-bubble .sender-label {
+    font-size: 0.75rem;
+    color: #cfe5ff;
+    margin-bottom: 0.25rem;
 }
 
-.telemetry-card {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    line-height: 1.6;
+.agent-bubble {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border-bottom-left-radius: 2px;
+    border: 1px solid #e5e7eb;
 }
 
-/* Live Terminal Log Styling */
+.agent-bubble .sender-label {
+    font-size: 0.75rem;
+    color: #059669;
+    margin-bottom: 0.25rem;
+}
+
+.safety-footer {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0.35rem;
+}
+
+/* Safety Rule Cards */
+.rule-card {
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #10b981;
+}
+
+.rule-name {
+    font-size: 0.95rem;
+    color: #111827;
+}
+
+/* Collapsible Technical Console */
 .terminal-box {
     background-color: #0f172a;
     color: #38bdf8;
-    border-radius: 6px;
-    padding: 0.75rem 1rem;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.8rem;
-    max-height: 180px;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #334155;
 }
 
 .terminal-line {
-    padding: 2px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
 }

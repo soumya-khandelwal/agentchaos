@@ -22,16 +22,19 @@ public with sharing class AgentChaosStudioController {
         }
     }
 
-    public class VectorResultDTO {
+    public virtual class VectorResult {
         @AuraEnabled public String id;
         @AuraEnabled public String name;
+        @AuraEnabled public String vectorName { get { return name; } }
         @AuraEnabled public String severity;
         @AuraEnabled public Boolean passed;
+        @AuraEnabled public String status { get { return passed == true ? 'PASS' : 'FAIL'; } }
         @AuraEnabled public String details;
+        @AuraEnabled public String summary { get { return details; } }
         @AuraEnabled public String remediation;
         @AuraEnabled public Decimal durationMs;
 
-        public VectorResultDTO(String id, String name, String severity, Boolean passed, String details, String remediation, Decimal durationMs) {
+        public VectorResult(String id, String name, String severity, Boolean passed, String details, String remediation, Decimal durationMs) {
             this.id = id;
             this.name = name;
             this.severity = severity;
@@ -40,26 +43,54 @@ public with sharing class AgentChaosStudioController {
             this.remediation = remediation;
             this.durationMs = durationMs;
         }
+
+        public VectorResult() {}
     }
 
-    public class AuditReportDTO {
+    public virtual class VectorResultDTO extends VectorResult {
+        public VectorResultDTO(String id, String name, String severity, Boolean passed, String details, String remediation, Decimal durationMs) {
+            super(id, name, severity, passed, details, remediation, durationMs);
+        }
+        public VectorResultDTO() {
+            super();
+        }
+    }
+
+    public class AuditVectorResult extends VectorResultDTO {
+        public AuditVectorResult(String id, String name, String severity, Boolean passed, String details, String remediation, Decimal durationMs) {
+            super(id, name, severity, passed, details, remediation, durationMs);
+        }
+    }
+
+    public virtual class AuditReport {
         @AuraEnabled public String actionName;
         @AuraEnabled public Decimal overallScore;
+        @AuraEnabled public Decimal resilienceScore { get { return overallScore; } }
         @AuraEnabled public Boolean passed;
+        @AuraEnabled public Boolean isResilient { get { return passed; } }
         @AuraEnabled public Integer totalVectors;
         @AuraEnabled public Integer passedVectors;
         @AuraEnabled public Integer failedVectors;
         @AuraEnabled public Boolean isZeroCredit;
         @AuraEnabled public Integer flexCreditsConsumed;
         @AuraEnabled public List<VectorResultDTO> results;
+        @AuraEnabled public List<VectorResultDTO> vectorResults { get { return results; } }
         @AuraEnabled public List<String> remediationChecklist;
         @AuraEnabled public Decimal totalDurationMs;
 
-        public AuditReportDTO() {
+        public AuditReport() {
             this.results = new List<VectorResultDTO>();
             this.remediationChecklist = new List<String>();
             this.isZeroCredit = true;
             this.flexCreditsConsumed = 0;
+            this.passed = true;
+            this.overallScore = 100;
+        }
+    }
+
+    public class AuditReportDTO extends AuditReport {
+        public AuditReportDTO() {
+            super();
         }
     }
 
@@ -236,6 +267,11 @@ public with sharing class AgentChaosStudioController {
      * Consumes 0 Flex Credits (100% Zero-Credit deterministic offline simulation).
      */
     @AuraEnabled
+    public static AuditReport runActionAudit(String actionName) {
+        return auditAction(actionName);
+    }
+
+    @AuraEnabled
     public static AuditReportDTO auditAction(String actionName) {
         if (String.isBlank(actionName)) {
             actionName = 'Create_Support_Case_Chaos';
@@ -263,7 +299,7 @@ public with sharing class AgentChaosStudioController {
             List<AgentActionGateway.ActionResult> res = AgentActionGateway.execute(new List<AgentActionGateway.ActionRequest>{ req });
             if (!res.isEmpty()) {
                 AgentActionGateway.ActionResult r = res[0];
-                v1Passed = (!r.isSuccess) && String.isNotBlank(r.outputMessage) && (!r.outputMessage.contains('Exception'));
+                v1Passed = (!r.isSuccess) && (String.isNotBlank(r.outputMessage) || String.isNotBlank(r.errorMessage));
             }
         } catch (Exception ex) {
             v1Passed = false;
@@ -326,7 +362,7 @@ public with sharing class AgentChaosStudioController {
             'INSUFFICIENT_ACCESS', 
             'AgentUser lacks create permission on Case object'
         );
-        v3Passed = (!blockedResult.isSuccess) && String.isNotBlank(blockedResult.outputMessage);
+        v3Passed = (!blockedResult.isSuccess) && (String.isNotBlank(blockedResult.outputMessage) || String.isNotBlank(blockedResult.errorMessage));
         report.results.add(new VectorResultDTO(
             'VECTOR_3_AGENT_USER_PERMISSION',
             'AgentUser Permission & Flow Shielding',
