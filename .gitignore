@@ -10,3 +10,5 @@ htmlcov/
 .sf/
 .sfdx/
 salesforce_deploy/
+*-report.html
+reports/

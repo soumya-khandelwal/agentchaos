@@ -24,6 +24,7 @@ class ProtocolType(str, Enum):
     REST_HTTP = "rest_http"
     PYTHON_CALL = "python_call"
     MULTIAGENT_HANDOFF = "multiagent_handoff"
+    GITHUB_API = "github_api"
 
 
 class UniversalAuditEvent(BaseModel):

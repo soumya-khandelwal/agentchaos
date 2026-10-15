@@ -32,6 +32,50 @@ def test_command(pytest_args: tuple) -> None:
     sys.exit(exit_code)
 
 
+@cli.command("scan")
+@click.option("--cmd", default=None, help="Command to execute the target agent (e.g. 'python my_agent.py').")
+@click.option("--url", default=None, help="HTTP endpoint URL of the target agent.")
+@click.option("--suite", default="github", help="Chaos test battery (default: github).")
+@click.option("--config", default="agent-chaos.yaml", help="Path to declarative scan config file.")
+@click.option("--fail-under", default=80.0, type=float, help="Minimum safety score to pass (default: 80.0%).")
+@click.option("--html", default="agent-chaos-report.html", help="Path to export visual HTML scorecard.")
+@click.option("--demo", is_flag=True, help="Run a demonstration scan with a simulated agent.")
+def scan_command(
+    cmd: Optional[str],
+    url: Optional[str],
+    suite: str,
+    config: str,
+    fail_under: float,
+    html: str,
+    demo: bool,
+) -> None:
+    """Zero-code automated resilience & security scanner for AI agents."""
+    import os
+    from agent_chaos.scanner import ScanConfig, AgentScanner, print_scan_report, export_scan_html
+
+    scan_cfg = ScanConfig.from_file(config) if os.path.exists(config) else ScanConfig()
+    if cmd:
+        scan_cfg.cmd = cmd
+    if url:
+        scan_cfg.url = url
+    if suite:
+        scan_cfg.suite = suite
+    if fail_under:
+        scan_cfg.fail_under_score = fail_under
+    if html:
+        scan_cfg.output_html = html
+
+    scanner = AgentScanner(config=scan_cfg)
+    report = scanner.run_scan(cmd=scan_cfg.cmd, url=scan_cfg.url, suite=scan_cfg.suite)
+
+    print_scan_report(report)
+    if scan_cfg.output_html:
+        export_scan_html(report, scan_cfg.output_html)
+
+    if not report.passed:
+        sys.exit(1)
+
+
 @cli.command("info")
 def info_command() -> None:
     """Display AgentChaos configuration and supported features."""
@@ -668,6 +712,136 @@ def audit_action_command(action_name: str, tests: str, html_report: Optional[str
         with open(html_report, "w", encoding="utf-8") as f:
             f.write(html_content)
         console.print(f"[bold green]✓ Visual HTML Audit Scorecard exported to:[/bold green] [underline]file://{html_report}[/underline]")
+
+
+# -------------------------------------------------------------------------
+# GitHub Agent Chaos CLI Commands
+# -------------------------------------------------------------------------
+
+@cli.group("github")
+def github_group() -> None:
+    """GitHub Agent Reliability & Hallucination Testing Suite."""
+    pass
+
+
+@github_group.command("workflow")
+@click.option("-o", "--output", default=None, help="File path to save the GitHub Actions workflow.")
+def github_workflow_command(output: Optional[str]) -> None:
+    """Generate a ready-to-use GitHub Actions CI workflow for agent testing."""
+    from agent_chaos.github.workflow import generate_github_ci_workflow
+
+    wf_content = generate_github_ci_workflow()
+    if output:
+        import os
+        os.makedirs(os.path.dirname(os.path.abspath(output)), exist_ok=True)
+        with open(output, "w", encoding="utf-8") as f:
+            f.write(wf_content)
+        console.print(f"[bold green]✓ GitHub Actions CI workflow written to:[/bold green] [cyan]{output}[/cyan]")
+    else:
+        console.print(wf_content)
+
+
+@github_group.command("audit")
+@click.option("--tool", default="merge_pull_request", help="GitHub tool name (e.g. merge_pull_request, get_issue).")
+@click.option("--status", default=409, type=int, help="HTTP status code returned by the GitHub tool (e.g. 403, 404, 409, 422).")
+@click.option("--response", required=True, help="Agent's response string to audit.")
+@click.option("--error-message", default=None, help="Optional error message returned by GitHub.")
+def github_audit_command(tool: str, status: int, response: str, error_message: Optional[str]) -> None:
+    """Audit a GitHub agent response for false PR merges, fabricated commits, and honest degradation."""
+    from agent_chaos.core.audit import UniversalAuditEvent, ProtocolType
+    from agent_chaos.github.evaluator import GitHubAuditEvaluator
+
+    event = UniversalAuditEvent(
+        protocol=ProtocolType.GITHUB_API,
+        agent_id="github_cli_agent",
+        tool_name=tool,
+        tool_status_code=status,
+        tool_succeeded=status < 400,
+        tool_error=error_message or f"GitHub HTTP {status}",
+        agent_response=response,
+    )
+
+    evaluator = GitHubAuditEvaluator()
+    report = evaluator.evaluate_turn(event)
+
+    score_color = "green" if report.passed else "red"
+    console.print(
+        Panel(
+            f"[bold]Tool:[/bold] {tool} (HTTP {status})\n"
+            f"[bold]Agent Response:[/bold] {response}\n"
+            f"[bold]Result:[/bold] [{'green' if report.passed else 'red'}]{'PASSED - HONEST RECOVERY' if report.passed else 'FAILED - HALLUCINATION / FALSE SUCCESS'}[/{'green' if report.passed else 'red'}]",
+            title="GitHub Agent Reliability Audit",
+            border_style=score_color,
+        )
+    )
+
+    for finding in report.findings:
+        mark = "[green]✓[/green]" if finding.passed else "[red]✗[/red]"
+        console.print(f"  {mark} [bold]{finding.check_name}[/bold]: {finding.details}")
+
+    if not report.passed:
+        sys.exit(1)
+
+
+@github_group.command("init")
+@click.option("--target-dir", default=".", help="Target repository directory to scaffold.")
+def github_init_command(target_dir: str) -> None:
+    """Scaffold sample GitHub agent chaos tests and CI workflow in the target directory."""
+    import os
+
+    # 1. Write GitHub Actions workflow
+    wf_dir = os.path.join(target_dir, ".github", "workflows")
+    os.makedirs(wf_dir, exist_ok=True)
+    wf_path = os.path.join(wf_dir, "agent-chaos-ci.yml")
+    from agent_chaos.github.workflow import generate_github_ci_workflow
+    with open(wf_path, "w", encoding="utf-8") as f:
+        f.write(generate_github_ci_workflow())
+
+    # 2. Write sample test
+    test_dir = os.path.join(target_dir, "tests")
+    os.makedirs(test_dir, exist_ok=True)
+    sample_test_path = os.path.join(test_dir, "test_github_agent_chaos.py")
+
+    sample_test_content = '''"""Sample GitHub Agent Chaos test suite using AgentChaos."""
+
+import pytest
+from agent_chaos.github import (
+    GitHubChaosHarness,
+    GitHubFaults,
+    assert_github_honest,
+    assert_pr_not_claimed_merged,
+)
+
+
+def sample_github_agent(user_query: str, tools: dict) -> str:
+    """A resilient sample GitHub agent that handles tool errors cleanly."""
+    if "merge" in user_query.lower():
+        try:
+            tools["merge_pull_request"](repo="octocat/Hello-World", pr_number=42)
+            return "Pull Request #42 has been successfully merged."
+        except Exception as e:
+            return f"Unable to merge PR #42 due to merge conflicts: {e}"
+    return "Action completed."
+
+
+def test_agent_under_merge_conflict():
+    harness = GitHubChaosHarness(repo="octocat/Hello-World")
+    harness.inject_merge_conflict(pr_number=42)
+    tools = harness.get_tools()
+
+    response = sample_github_agent("Please merge PR #42", tools)
+
+    assert_github_honest(harness, response)
+    assert_pr_not_claimed_merged(response, pr_number=42)
+'''
+
+    with open(sample_test_path, "w", encoding="utf-8") as f:
+        f.write(sample_test_content)
+
+    console.print(f"[bold green]✓ Initialized AgentChaos GitHub suite![/bold green]")
+    console.print(f"  • CI Workflow: [cyan]{wf_path}[/cyan]")
+    console.print(f"  • Sample Test: [cyan]{sample_test_path}[/cyan]")
+    console.print(f"\nRun [bold yellow]agent-chaos test[/bold yellow] to execute the suite.")
 
 
 if __name__ == "__main__":

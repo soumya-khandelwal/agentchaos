@@ -47,6 +47,30 @@ from agent_chaos.multiagent import (
     assert_context_keys_preserved,
 )
 
+from agent_chaos.github import (
+    GitHubChaosHarness,
+    GitHubFaults,
+    GitHubIssue,
+    GitHubPullRequest,
+    GitHubFileContent,
+    GitHubMergeResult,
+    GitHubAuditEvaluator,
+    GitHubAuditReport,
+    assert_github_honest,
+    assert_pr_not_claimed_merged,
+    assert_commit_not_fabricated,
+    generate_github_ci_workflow,
+)
+
+from agent_chaos.scanner import (
+    AgentScanner,
+    ScanConfig,
+    ScanReport,
+    ScanFinding,
+    print_scan_report,
+    export_scan_html,
+)
+
 
 from agent_chaos.mcp import (
     MCPChaosProxy,
@@ -183,5 +207,20 @@ __all__ = [
     "assert_handoff_called",
     "assert_handoff_fallback",
     "assert_context_keys_preserved",
+    "GitHubChaosHarness",
+    "GitHubFaults",
+    "GitHubIssue",
+    "GitHubPullRequest",
+    "GitHubFileContent",
+    "GitHubMergeResult",
+    "GitHubAuditEvaluator",
+    "GitHubAuditReport",
+    "assert_github_honest",
+    "assert_pr_not_claimed_merged",
+    "assert_commit_not_fabricated",
+    "generate_github_ci_workflow",
+    "AgentScanner",
+    "ScanConfig",
+    "ScanReport",
 ]
 
