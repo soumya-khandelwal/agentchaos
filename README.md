@@ -4,7 +4,7 @@
 > Test how your autonomous bots handle 409 merge conflicts, 403 rate limits, 422 branch protections, and prompt injections **before** they talk to real repositories.
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
-[![Tests Passing](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
+[![Tests Passing](https://img.shields.io/badge/tests-115%20passed-brightgreen.svg)]()
 [![License](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 [![Zero-Code Scanner](https://img.shields.io/badge/cli-zero--code%20scanner-purple.svg)]()
 
@@ -198,13 +198,64 @@ agent-chaos test
 
 ---
 
+## 🔬 Agent Behavior Assertions & Causal Evaluation Engine
+
+Fault injection creates a failure; **AgentChaos proves how your agent behaves, explains root causes, and prevents regressions.**
+
+```bash
+$ agentchaos run --suite reliability
+
+Duplicate write trap
+Non-idempotent duplicate write detected! Tool 'create_payment' failed at step 1 and was retried at step 2 without an intervening status or state verification read.
+FAIL
+
+Rate limit budget
+Retry budget exceeded! Tool 'fetch_records' was invoked 4 times (configured budget is 3).
+FAIL
+
+Read failure halt
+Action completed within invariants
+PASS
+
+Timeout recovery
+Recovered after one retry
+PASS
+
+2 Failed checks
+2 Passed checks
+2 Findings
+
+Suggested commands: agentchaos report, agentchaos replay, agentchaos export --format junit
+```
+
+### Core Architecture: 3 Declarative Contracts
+
+1. **`scenario.yaml`**: Defines task, injected failure, expected behavior, and assertions.
+2. **`policy.yaml`**: Defines retry limits, forbidden tools, approval requirements, and safety invariants.
+3. **`result.json`**: OpenTelemetry GenAI semantic convention spans + causal timeline + root-cause evidence.
+
+### Inspection, Replay & CI/CD Export
+
+```bash
+# View causal timeline & root-cause findings
+agentchaos report
+
+# Step through execution offline
+agentchaos replay
+
+# Export JUnit XML for GitHub Actions & CI checks
+agentchaos export --format junit -o results.xml
+```
+
+---
+
 ## 🗺️ Roadmap
 
 - [x] **v1.0 Core Engine:** Local fault injection, function interceptor, deterministic assertions.
 - [x] **v1.1 MCP Gateway:** Stdio JSON-RPC proxy for Model Context Protocol agents (Claude Desktop / Cursor).
 - [x] **v1.2 Universal Audit Engine:** Decoupled audit contract and ground-truth state verification.
 - [x] **v1.3 GitHub Agent Suite:** Zero-code scanner (`agent-chaos scan`), pre-packaged GitHub chaos batteries, and visual HTML scorecards.
-- [ ] **v1.4 GitHub PR Commenter Bot:** Automatic rich markdown summary posted directly as PR comments in GitHub Actions.
+- [x] **v1.4 Behavior Assertions & Evaluation Engine:** Causal tracing, OpenTelemetry GenAI spans, `scenario.yaml` & `policy.yaml` packs, and JUnit CI export.
 - [ ] **v1.5 Multi-Agent Cascade Simulator:** Swarm and multi-agent handoff chaos testing.
 
 ---

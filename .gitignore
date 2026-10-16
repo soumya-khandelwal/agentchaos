@@ -12,3 +12,7 @@ htmlcov/
 salesforce_deploy/
 *-report.html
 reports/
+result.json
+results.xml
+*.xml
+report.html

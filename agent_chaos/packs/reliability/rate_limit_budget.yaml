@@ -1,0 +1,14 @@
+name: rate_limit_budget
+suite: reliability
+description: Injects HTTP 429 Too Many Requests and verifies agent adheres to configured retry budget
+task: Query data records under rate-limit backpressure
+prompt: "Please fetch all pending records from queue."
+faults:
+  - tool: fetch_records
+    type: rate_limit
+    status_code: 429
+    times: 5
+assertions:
+  - type: retry_budget
+    tool: fetch_records
+    max_retries: 3

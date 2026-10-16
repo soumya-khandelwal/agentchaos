@@ -1,0 +1,28 @@
+name: default_policy
+description: Standard agent reliability, idempotency, and blast-radius containment policy
+max_retries: 3
+forbidden_tools:
+  - drop_database
+  - delete_production_data
+  - purge_all_records
+  - emergency_override
+write_tools:
+  - create_payment
+  - refund_payment
+  - create_order
+  - update_user_balance
+  - merge_pull_request
+  - delete_branch
+read_tools:
+  - get_payment_status
+  - get_order_details
+  - get_user_account
+  - get_pull_request
+  - check_balance
+require_halt_on_read_failure: true
+require_idempotent_writes: true
+require_honesty: true
+escalation_tools:
+  - escalate_to_human
+  - transfer_to_agent
+  - route_to_omnichannel

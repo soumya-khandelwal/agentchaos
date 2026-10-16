@@ -58,6 +58,10 @@ class ChaosHarness:
 
         return decorator
 
+    def register_tool(self, name: str, func: Callable[..., Any]) -> Callable[..., Any]:
+        """Register and wrap a tool callable for interception and recording."""
+        return self.wrap_tool(name, func)
+
     def wrap_tool(self, name: str, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an existing callable to record calls and inject configured faults."""
         is_async = asyncio.iscoroutinefunction(func)

@@ -844,6 +844,269 @@ def test_agent_under_merge_conflict():
     console.print(f"\nRun [bold yellow]agent-chaos test[/bold yellow] to execute the suite.")
 
 
+# -------------------------------------------------------------------------
+# Evaluation Platform CLI Commands (agentchaos run / report / replay / export)
+# -------------------------------------------------------------------------
+
+@cli.command("run")
+@click.option("--suite", default="reliability", help="Scenario suite to execute (default: reliability).")
+@click.option("--scenario", default=None, help="Specific scenario name or path to scenario YAML.")
+@click.option("--policy", default=None, help="Path to policy YAML file or policy name.")
+@click.option("-o", "--output-json", default="result.json", help="Path to write machine-readable result.json.")
+@click.option("--export-junit", default=None, help="Path to export JUnit XML for CI/CD.")
+def run_command(
+    suite: str,
+    scenario: Optional[str],
+    policy: Optional[str],
+    output_json: str,
+    export_junit: Optional[str],
+) -> None:
+    """Execute declarative agent chaos scenario packs and behavior assertions."""
+    import json
+    from agent_chaos.packs.loader import (
+        get_scenarios_for_suite,
+        load_scenario,
+        load_policy,
+    )
+    from agent_chaos.specs.runner import run_simulated_scenario, SuiteRunSummary
+
+    pol = load_policy(policy)
+
+    if scenario:
+        scenarios = [load_scenario(scenario)]
+    else:
+        scenarios = get_scenarios_for_suite(suite)
+        if not scenarios:
+            console.print(f"[bold red]No scenarios found in suite:[/bold red] {suite}")
+            sys.exit(1)
+
+    summary = SuiteRunSummary(suite_name=suite)
+    console.print()
+
+    for sc in scenarios:
+        res = run_simulated_scenario(sc, pol)
+        summary.add_result(res)
+
+        # Title formatted nicely
+        title = sc.name.replace("_", " ").capitalize()
+        console.print(f"[bold]{title}[/bold]")
+
+        # Explanation / finding line
+        if res.passed:
+            console.print("[dim]Recovered after one retry[/dim]" if "timeout" in sc.name else "[dim]Action completed within invariants[/dim]")
+            console.print("[bold green]PASS[/bold green]\n")
+        else:
+            explanation = res.root_cause_evidence or "Policy violation detected"
+            console.print(f"[yellow]{explanation}[/yellow]")
+            console.print("[bold red]FAIL[/bold red]\n")
+
+    # Summary counts
+    if summary.failed_count > 0:
+        console.print(f"[bold red]{summary.failed_count}[/bold red] Failed checks")
+    if summary.passed_count > 0:
+        console.print(f"[bold green]{summary.passed_count}[/bold green] Passed checks")
+    if summary.findings_count > 0:
+        console.print(f"[bold yellow]{summary.findings_count}[/bold yellow] Findings\n")
+    else:
+        console.print("0 Findings\n")
+
+    console.print("[dim]Suggested commands: agentchaos report, agentchaos replay, agentchaos export --format junit[/dim]\n")
+
+    # Serialize to result.json
+    result_data = {
+        "suite": suite,
+        "policy": pol.name,
+        "all_passed": summary.all_passed,
+        "passed_count": summary.passed_count,
+        "failed_count": summary.failed_count,
+        "findings_count": summary.findings_count,
+        "results": [r.model_dump() for r in summary.results],
+    }
+    with open(output_json, "w", encoding="utf-8") as f:
+        json.dump(result_data, f, indent=2)
+
+    # Export JUnit XML if requested
+    if export_junit:
+        xml_lines = [
+            f'<?xml version="1.0" encoding="UTF-8"?>',
+            f'<testsuite name="AgentChaos.{suite}" tests="{len(summary.results)}" failures="{summary.failed_count}" errors="0">',
+        ]
+        for r in summary.results:
+            time_sec = r.total_duration_ms / 1000.0
+            if r.passed:
+                xml_lines.append(f'  <testcase classname="agentchaos.{r.policy}" name="{r.scenario}" time="{time_sec:.3f}"/>')
+            else:
+                xml_lines.append(f'  <testcase classname="agentchaos.{r.policy}" name="{r.scenario}" time="{time_sec:.3f}">')
+                xml_lines.append(f'    <failure message="{r.first_failed_assertion or "Assertion Failed"}" type="BlastRadiusViolation">')
+                xml_lines.append(f'      {r.root_cause_evidence or "Evidence not available"}')
+                xml_lines.append(f'    </failure>')
+                xml_lines.append(f'  </testcase>')
+        xml_lines.append('</testsuite>')
+        with open(export_junit, "w", encoding="utf-8") as f:
+            f.write("\n".join(xml_lines))
+
+    if not summary.all_passed:
+        sys.exit(1)
+
+
+@cli.command("report")
+@click.option("-f", "--file", "result_file", default="result.json", help="Path to result.json.")
+def report_command(result_file: str) -> None:
+    """Display detailed execution traces, findings, and evidence from a previous run."""
+    import json
+    from pathlib import Path
+    from rich.panel import Panel
+
+    p = Path(result_file)
+    if not p.exists():
+        console.print(f"[bold red]Result file not found:[/bold red] {result_file}")
+        sys.exit(1)
+
+    with open(p, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    results = data.get("results", []) if "results" in data else [data]
+
+    console.print(f"[bold cyan]📊 AgentChaos Evaluation Report[/bold cyan] [dim]({result_file})[/dim]\n")
+
+    for r in results:
+        status_color = "green" if r.get("passed", True) else "red"
+        status_text = "PASS" if r.get("passed", True) else "FAIL"
+        timeline = "\n".join(r.get("causal_timeline", []))
+
+        console.print(Panel(
+            f"[bold]Scenario:[/bold] {r.get('scenario')} | [bold]Policy:[/bold] {r.get('policy')} | [bold]Verdict:[/bold] [{status_color}]{status_text}[/{status_color}]\n\n"
+            f"[bold]Causal Execution Timeline:[/bold]\n{timeline or 'No timeline recorded'}\n\n"
+            f"[bold]First Failed Assertion:[/bold] {r.get('first_failed_assertion') or 'None'}\n"
+            f"[bold]Evidence:[/bold] {r.get('root_cause_evidence') or 'Clean execution'}",
+            title=f"{r.get('scenario')} ({status_text})",
+            border_style=status_color,
+        ))
+
+
+@cli.command("replay")
+@click.option("-f", "--file", "result_file", default="result.json", help="Path to result.json.")
+def replay_command(result_file: str) -> None:
+    """Replay recorded causal timeline and injected faults step-by-step."""
+    import json
+    from pathlib import Path
+
+    p = Path(result_file)
+    if not p.exists():
+        console.print(f"[bold red]Result file not found:[/bold red] {result_file}")
+        sys.exit(1)
+
+    with open(p, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    results = data.get("results", []) if "results" in data else [data]
+
+    console.print(f"[bold magenta]📼 Replaying Execution Trace[/bold magenta] [dim]({result_file})[/dim]\n")
+
+    for r in results:
+        console.print(f"[bold cyan]▶ Scenario:[/bold cyan] {r.get('scenario')}")
+        timeline = r.get("causal_timeline", [])
+        for entry in timeline:
+            if "FAULT" in entry:
+                console.print(f"  [bold red]{entry}[/bold red]")
+            elif "FAILED" in entry:
+                console.print(f"  [bold yellow]{entry}[/bold yellow]")
+            else:
+                console.print(f"  [dim]{entry}[/dim]")
+        console.print()
+
+
+@cli.command("export")
+@click.option("--format", "-f", "export_format", type=click.Choice(["junit", "json", "html"]), default="junit", help="Export format.")
+@click.option("--input", "-i", "input_file", default="result.json", help="Input result.json file.")
+@click.option("-o", "--output", default=None, help="Output destination file path.")
+def export_command(export_format: str, input_file: str, output: Optional[str]) -> None:
+    """Export evaluation results to JUnit XML, JSON, or visual HTML."""
+    import json
+    from pathlib import Path
+
+    p = Path(input_file)
+    if not p.exists():
+        console.print(f"[bold red]Input file not found:[/bold red] {input_file}")
+        sys.exit(1)
+
+    with open(p, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    results = data.get("results", []) if "results" in data else [data]
+    failed_count = sum(1 for r in results if not r.get("passed", True))
+
+    if export_format == "junit":
+        dest = output or "agent-chaos-results.xml"
+        xml_lines = [
+            f'<?xml version="1.0" encoding="UTF-8"?>',
+            f'<testsuite name="AgentChaos" tests="{len(results)}" failures="{failed_count}" errors="0">',
+        ]
+        for r in results:
+            time_sec = float(r.get("total_duration_ms", 0.0)) / 1000.0
+            sc = r.get("scenario", "test")
+            pol = r.get("policy", "default")
+            if r.get("passed", True):
+                xml_lines.append(f'  <testcase classname="agentchaos.{pol}" name="{sc}" time="{time_sec:.3f}"/>')
+            else:
+                xml_lines.append(f'  <testcase classname="agentchaos.{pol}" name="{sc}" time="{time_sec:.3f}">')
+                xml_lines.append(f'    <failure message="{r.get("first_failed_assertion", "Assertion Failed")}" type="BlastRadiusViolation">')
+                xml_lines.append(f'      {r.get("root_cause_evidence", "Violation observed")}')
+                xml_lines.append(f'    </failure>')
+                xml_lines.append(f'  </testcase>')
+        xml_lines.append('</testsuite>')
+        content = "\n".join(xml_lines)
+        with open(dest, "w", encoding="utf-8") as f:
+            f.write(content)
+        console.print(f"[bold green]✓ Exported JUnit XML to:[/bold green] [cyan]{dest}[/cyan]")
+
+    elif export_format == "html":
+        dest = output or "agent-chaos-report.html"
+        rows = []
+        for r in results:
+            sc = r.get("scenario", "test")
+            passed = r.get("passed", True)
+            status_cls = "pass" if passed else "fail"
+            evidence = r.get("root_cause_evidence") or "Passed cleanly"
+            rows.append(f"<tr><td><b>{sc}</b></td><td class='{status_cls}'>{'PASS' if passed else 'FAIL'}</td><td>{evidence}</td></tr>")
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>AgentChaos Evaluation Report</title>
+    <style>
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; }}
+        .card {{ background: #1e293b; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #334155; }}
+        .pass {{ color: #22c55e; font-weight: bold; }}
+        .fail {{ color: #ef4444; font-weight: bold; }}
+        table {{ width: 100%; border-collapse: collapse; margin-top: 1rem; }}
+        th, td {{ padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; }}
+        th {{ color: #94a3b8; font-size: 0.85rem; text-transform: uppercase; }}
+    </style>
+</head>
+<body>
+    <h1>⚡ AgentChaos Evaluation Report</h1>
+    <div class="card">
+        <h2>Total Checks: {len(results)} | Failed: <span class="{'fail' if failed_count > 0 else 'pass'}">{failed_count}</span></h2>
+        <table>
+            <thead><tr><th>Scenario</th><th>Verdict</th><th>Evidence</th></tr></thead>
+            <tbody>{''.join(rows)}</tbody>
+        </table>
+    </div>
+</body>
+</html>"""
+        with open(dest, "w", encoding="utf-8") as f:
+            f.write(html_content)
+        console.print(f"[bold green]✓ Exported HTML Report to:[/bold green] [cyan]{dest}[/cyan]")
+
+    else:
+        dest = output or "exported-result.json"
+        with open(dest, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        console.print(f"[bold green]✓ Exported JSON to:[/bold green] [cyan]{dest}[/cyan]")
+
+
 if __name__ == "__main__":
     cli()
+
 

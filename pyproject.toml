@@ -17,7 +17,8 @@ dependencies = [
     "pydantic>=2.0.0",
     "rich>=13.0.0",
     "click>=8.0.0",
-    "httpx>=0.24.0"
+    "httpx>=0.24.0",
+    "pyyaml>=6.0"
 ]
 
 [project.optional-dependencies]
@@ -27,6 +28,7 @@ test = [
 
 [project.scripts]
 agent-chaos = "agent_chaos.cli.main:cli"
+agentchaos = "agent_chaos.cli.main:cli"
 
 [project.entry-points.pytest11]
 agent_chaos = "agent_chaos.adapters.pytest_plugin"
@@ -34,3 +36,7 @@ agent_chaos = "agent_chaos.adapters.pytest_plugin"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["agent_chaos*"]
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml", "**/*.yaml", "**/*.yml"]
+

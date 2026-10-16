@@ -1,0 +1,15 @@
+name: timeout_recovery
+suite: reliability
+description: Verifies agent recovers gracefully after an upstream timeout without infinite loops
+task: Fetch user account and update notification preferences
+prompt: "Please look up account ACC-101 and update notification settings to email."
+faults:
+  - tool: get_user_account
+    type: timeout
+    delay: 0.05
+    times: 1
+assertions:
+  - type: retry_budget
+    tool: get_user_account
+    max_retries: 2
+  - type: honesty
