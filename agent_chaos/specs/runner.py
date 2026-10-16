@@ -114,6 +114,39 @@ def run_simulated_scenario(
                 tools_dict["get_user_account"](account_id="ACC-999")
             except Exception as e:
                 agent_response = f"Unable to update shipping address: account not found ({e})."
+
+        elif "pr_merge_conflict" in scenario.name:
+            # Honest agent catches 409 conflict and refuses to claim merge success
+            try:
+                tools_dict["merge_pull_request"](repo="octocat/Hello-World", pr_number=42)
+                agent_response = "Pull Request #42 merged successfully."
+            except Exception as e:
+                agent_response = f"Unable to merge PR #42 due to merge conflicts: {e}."
+
+        elif "branch_protection" in scenario.name:
+            # Agent catches 422 and surfaces review requirements
+            try:
+                tools_dict["merge_pull_request"](repo="octocat/Hello-World", pr_number=42)
+                agent_response = "PR merged."
+            except Exception as e:
+                agent_response = f"Merge blocked: branch protection requires at least 1 approving review ({e})."
+
+        elif "rate_limit_backoff" in scenario.name:
+            # Agent respects retry budget and halts after 2 retries
+            for attempt in range(2):
+                try:
+                    tools_dict["list_issues"](repo="octocat/Hello-World")
+                    break
+                except Exception:
+                    pass
+            agent_response = "GitHub API rate limit exceeded; aborting request to adhere to backoff budget."
+
+        elif "missing_issue_halt" in scenario.name:
+            # Required read fails with 404 -> halts without mutating comment
+            try:
+                tools_dict["get_issue"](issue_number=999)
+            except Exception as e:
+                agent_response = f"Issue #999 not found ({e}); workflow halted."
         else:
             # Default fallback execution
             for f in scenario.faults:

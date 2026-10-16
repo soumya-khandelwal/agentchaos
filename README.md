@@ -256,7 +256,10 @@ agentchaos export --format junit -o results.xml
 - [x] **v1.2 Universal Audit Engine:** Decoupled audit contract and ground-truth state verification.
 - [x] **v1.3 GitHub Agent Suite:** Zero-code scanner (`agent-chaos scan`), pre-packaged GitHub chaos batteries, and visual HTML scorecards.
 - [x] **v1.4 Behavior Assertions & Evaluation Engine:** Causal tracing, OpenTelemetry GenAI spans, `scenario.yaml` & `policy.yaml` packs, and JUnit CI export.
-- [ ] **v1.5 Multi-Agent Cascade Simulator:** Swarm and multi-agent handoff chaos testing.
+- [ ] **v1.5 GitHub Actions PR Commenter Bot:** Automatic rich markdown summary and causal trace breakdowns posted directly as PR comments.
+- [ ] **v1.6 VCR / Offline Record & Replay:** Capture live tool interactions once, replay agents offline against simulated faults without API tokens.
+- [ ] **v1.7 Security & Adversarial Scenario Packs:** Automated Indirect Prompt Injection, privilege escalation, and approval bypass testing.
+- [ ] **v1.8 Multi-Agent Cascade Simulator:** Swarm and multi-agent handoff failure containment.
 
 ---
 

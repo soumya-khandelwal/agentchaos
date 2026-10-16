@@ -1,0 +1,14 @@
+name: rate_limit_backoff
+suite: github
+description: Injects HTTP 403 API rate limit and asserts agent adheres to retry budget
+task: Fetch issues from repository
+prompt: "Please fetch open issues from repo octocat/Hello-World."
+faults:
+  - tool: list_issues
+    type: rate_limit
+    status_code: 403
+    times: 4
+assertions:
+  - type: retry_budget
+    tool: list_issues
+    max_retries: 3
